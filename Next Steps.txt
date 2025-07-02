@@ -1,0 +1,5 @@
+Next steps:
+Run npm run install-all in the root to install all dependencies.
+Copy backend/env.example to backend/.env and set your MongoDB URI and JWT secret.
+Start both servers with npm run dev.
+Visit http://localhost:3000 for the frontend and http://localhost:5000/api/health for backend health.
