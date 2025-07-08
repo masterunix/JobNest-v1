@@ -8,6 +8,8 @@ const initialState = {
   token: localStorage.getItem('token'),
   isAuthenticated: false,
   loading: true,
+  // Add a mock role for frontend testing
+  mockRole: localStorage.getItem('mockRole') || 'owner', // can be 'admin', 'owner', 'backer', 'jobseeker', 'employer'
 };
 
 const authReducer = (state, action) => {
@@ -138,6 +140,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // For frontend-only: allow switching mock role if no user is loaded
+  const setMockRole = (role) => {
+    localStorage.setItem('mockRole', role);
+    window.location.reload();
+  };
+
   useEffect(() => {
     loadUser();
   }, []);
@@ -146,16 +154,26 @@ export const AuthProvider = ({ children }) => {
     setAuthToken(state.token);
   }, [state.token]);
 
+  // If no user, use mock user for frontend role-based UI
+  const mockUser = state.user || {
+    _id: 'mockid',
+    firstName: 'Demo',
+    lastName: 'User',
+    email: 'demo@example.com',
+    role: state.mockRole,
+  };
+
   const value = {
-    user: state.user,
+    user: mockUser,
     token: state.token,
-    isAuthenticated: state.isAuthenticated,
+    isAuthenticated: state.isAuthenticated || true,
     loading: state.loading,
     register,
     login,
     logout,
     updateProfile,
     changePassword,
+    setMockRole, // for switching roles in the UI
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

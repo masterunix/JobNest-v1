@@ -1,13 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useMode } from '../contexts/ModeContext';
 import { 
   Search, 
   Briefcase, 
   Users, 
   TrendingUp, 
   Shield, 
-  Zap
+  Zap,
+  UserPlus,
+  Compass,
+  PlusCircle,
+  LayoutDashboard
 } from 'lucide-react';
 
 const companyLogos = [
@@ -23,6 +28,7 @@ const companyLogos = [
 
 const Home = () => {
   const { isAuthenticated } = useAuth();
+  const { mode } = useMode();
 
   const features = [
     {
@@ -70,14 +76,50 @@ const Home = () => {
       <section className="pt-16 pb-12 bg-gradient-to-br from-primary-50 to-secondary-50">
         <div className="max-w-3xl mx-auto text-center px-4">
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6 text-primary-700">
-            Where startups and job seekers connect
+            {mode === 'company' ? 'Hire top startup talent' : 'Where startups and job seekers connect'}
           </h1>
           <p className="text-lg md:text-2xl text-gray-600 mb-8">
-            Find your next hire or your next job. Discover unique opportunities at top startups and tech companies.
+            {mode === 'company'
+              ? 'Post jobs, manage applicants, and find your next great hire.'
+              : 'Find your next hire or your next job. Discover unique opportunities at top startups and tech companies.'}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link to="/register" className="btn-primary px-8 py-3 text-lg font-semibold">Sign Up</Link>
-            <Link to="/jobs" className="btn-secondary px-8 py-3 text-lg font-semibold">Find Jobs</Link>
+          {/* Redesigned Action Buttons */}
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row gap-4 bg-white/80 shadow rounded-xl p-4">
+              {mode === 'company' ? (
+                <>
+                  <Link to="/register" className="btn-primary flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                    <UserPlus className="h-5 w-5" /> Sign Up as Company
+                  </Link>
+                  <Link to="/post-job" className="btn-secondary flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                    <Briefcase className="h-5 w-5" /> Post a Job
+                  </Link>
+                  <Link to="/dashboard" className="btn-accent flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                    <LayoutDashboard className="h-5 w-5" /> Company Dashboard
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/register" className="btn-primary flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                    <UserPlus className="h-5 w-5" /> Sign Up as Job Seeker
+                  </Link>
+                  <Link to="/jobs" className="btn-secondary flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                    <Briefcase className="h-5 w-5" /> Find Jobs
+                  </Link>
+                  <Link to="/dashboard" className="btn-accent flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                    <LayoutDashboard className="h-5 w-5" /> My Dashboard
+                  </Link>
+                </>
+              )}
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 bg-white/80 shadow rounded-xl p-4">
+              <Link to="/campaigns" className="btn-primary flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                <Compass className="h-5 w-5" /> Explore Campaigns
+              </Link>
+              <Link to="/campaigns/create" className="btn-secondary flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                <PlusCircle className="h-5 w-5" /> Create Campaign
+              </Link>
+            </div>
           </div>
           <div className="max-w-xl mx-auto">
             <input

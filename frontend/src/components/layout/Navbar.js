@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { useMode } from '../../contexts/ModeContext';
 
 const Navbar = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [mode, setMode] = useState('jobseeker');
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const { mode, setMode } = useMode();
   const location = useLocation();
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
@@ -14,7 +15,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
-          <img src="/assets/jobnest-logo.svg" alt="JobNest Logo" className="h-8 w-auto" />
+          <img src="/assets/jobnest-logo.png" alt="JobNest Logo" className="h-12 w-auto" />
         </Link>
         {/* Toggle */}
         <div className="hidden md:flex items-center space-x-2">

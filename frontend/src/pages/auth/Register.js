@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, Mail, Lock, Eye, EyeOff, Building } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useMode } from '../../contexts/ModeContext';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +13,7 @@ const Register = () => {
   const [role, setRole] = useState('jobseeker');
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
+  const { mode } = useMode();
 
   const {
     register,
@@ -21,6 +23,10 @@ const Register = () => {
   } = useForm();
 
   const password = watch('password');
+
+  React.useEffect(() => {
+    setRole(mode === 'company' ? 'employer' : 'jobseeker');
+  }, [mode]);
 
   const onSubmit = async (data) => {
     setIsLoading(true);

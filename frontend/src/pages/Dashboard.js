@@ -10,8 +10,38 @@ import {
   DollarSign
 } from 'lucide-react';
 
+const mockOwnedCampaigns = [
+  {
+    id: 1,
+    title: 'Build a School in Kenya',
+    goal: 20000,
+    raised: 12000,
+    status: 'approved',
+    contributors: 120
+  },
+  {
+    id: 2,
+    title: 'Tech for Rural Youth',
+    goal: 15000,
+    raised: 4000,
+    status: 'pending',
+    contributors: 25
+  }
+];
+
+const mockBackedCampaigns = [
+  {
+    id: 2,
+    title: 'Clean Water for All',
+    goal: 10000,
+    raised: 9500,
+    contributed: 200,
+    status: 'approved'
+  }
+];
+
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, setMockRole } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
 
   // Mock data
@@ -79,6 +109,107 @@ const Dashboard = () => {
   };
 
   const isJobSeeker = user?.role === 'jobseeker';
+
+  // Role switcher for frontend testing
+  const roles = ['admin', 'owner', 'backer', 'jobseeker', 'employer'];
+
+  // Admin dashboard
+  if (user.role === 'admin') {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="mb-6 flex items-center gap-4">
+            <h1 className="text-3xl font-bold">Admin Panel</h1>
+            <select
+              className="ml-auto border rounded px-2 py-1"
+              value={user.role}
+              onChange={e => setMockRole(e.target.value)}
+            >
+              {roles.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
+            <h2 className="text-xl font-semibold mb-2">Moderation & Insights</h2>
+            <p className="text-gray-600">(Admin features coming soon: campaign moderation, platform stats, user management...)</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Owner dashboard
+  if (user.role === 'owner') {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="mb-6 flex items-center gap-4">
+            <h1 className="text-3xl font-bold">Owner Dashboard</h1>
+            <select
+              className="ml-auto border rounded px-2 py-1"
+              value={user.role}
+              onChange={e => setMockRole(e.target.value)}
+            >
+              {roles.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold mb-4">Your Campaigns</h2>
+            <ul className="divide-y divide-gray-100">
+              {mockOwnedCampaigns.map(c => (
+                <li key={c.id} className="py-3 flex justify-between items-center">
+                  <div>
+                    <div className="font-medium text-gray-900">{c.title}</div>
+                    <div className="text-xs text-gray-500">Status: {c.status}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-primary-700 font-semibold">${c.raised.toLocaleString()} / ${c.goal.toLocaleString()}</div>
+                    <div className="text-xs text-gray-500">{c.contributors} contributors</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Backer dashboard
+  if (user.role === 'backer') {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="mb-6 flex items-center gap-4">
+            <h1 className="text-3xl font-bold">Backer Dashboard</h1>
+            <select
+              className="ml-auto border rounded px-2 py-1"
+              value={user.role}
+              onChange={e => setMockRole(e.target.value)}
+            >
+              {roles.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold mb-4">Your Contributions</h2>
+            <ul className="divide-y divide-gray-100">
+              {mockBackedCampaigns.map(c => (
+                <li key={c.id} className="py-3 flex justify-between items-center">
+                  <div>
+                    <div className="font-medium text-gray-900">{c.title}</div>
+                    <div className="text-xs text-gray-500">Status: {c.status}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-primary-700 font-semibold">Contributed: ${c.contributed.toLocaleString()}</div>
+                    <div className="text-xs text-gray-500">Raised: ${c.raised.toLocaleString()} / ${c.goal.toLocaleString()}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -11,54 +11,63 @@ import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import PostJob from './pages/PostJob';
+import CreateCampaign from './pages/campaigns/CreateCampaign';
+import Campaigns from './pages/campaigns/Campaigns';
+import CampaignDetail from './pages/campaigns/CampaignDetail';
 import { AuthProvider } from './contexts/AuthContext';
+import { ModeProvider } from './contexts/ModeContext';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-          <Navbar />
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/jobs/:id" element={<JobDetail />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/post-job" element={<PostJob />} />
-            </Routes>
-          </main>
-          <Footer />
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
-                duration: 3000,
-                iconTheme: {
-                  primary: '#22c55e',
-                  secondary: '#fff',
+    <ModeProvider>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50 flex flex-col">
+            <Navbar />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/jobs" element={<Jobs />} />
+                <Route path="/jobs/:id" element={<JobDetail />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/post-job" element={<PostJob />} />
+                <Route path="/campaigns/create" element={<CreateCampaign />} />
+                <Route path="/campaigns" element={<Campaigns />} />
+                <Route path="/campaigns/:id" element={<CampaignDetail />} />
+              </Routes>
+            </main>
+            <Footer />
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
                 },
-              },
-              error: {
-                duration: 5000,
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#fff',
+                success: {
+                  duration: 3000,
+                  iconTheme: {
+                    primary: '#22c55e',
+                    secondary: '#fff',
+                  },
                 },
-              },
-            }}
-          />
-        </div>
-      </Router>
-    </AuthProvider>
+                error: {
+                  duration: 5000,
+                  iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
+                  },
+                },
+              }}
+            />
+          </div>
+        </Router>
+      </AuthProvider>
+    </ModeProvider>
   );
 }
 
