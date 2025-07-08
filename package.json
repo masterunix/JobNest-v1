@@ -10,10 +10,18 @@
     "start": "cd api && nodemon index.js",
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
   },
-  "keywords": ["job", "application", "fullstack", "react", "node", "mongodb"],
+  "keywords": [
+    "job",
+    "application",
+    "fullstack",
+    "react",
+    "node",
+    "mongodb"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "vite": "^7.0.2"
   }
-} 
+}
