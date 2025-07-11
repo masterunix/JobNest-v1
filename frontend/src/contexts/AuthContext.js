@@ -16,6 +16,7 @@ const authReducer = (state, action) => {
   switch (action.type) {
     case 'LOGIN_SUCCESS':
       localStorage.setItem('token', action.payload.token);
+      localStorage.setItem('user', JSON.stringify(action.payload.user));
       return {
         ...state,
         user: action.payload.user,
@@ -26,6 +27,7 @@ const authReducer = (state, action) => {
     case 'LOGIN_FAIL':
     case 'LOGOUT':
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       return {
         ...state,
         user: null,
@@ -34,6 +36,7 @@ const authReducer = (state, action) => {
         loading: false,
       };
     case 'USER_LOADED':
+      localStorage.setItem('user', JSON.stringify(action.payload));
       return {
         ...state,
         user: action.payload,
@@ -42,6 +45,7 @@ const authReducer = (state, action) => {
       };
     case 'AUTH_ERROR':
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       return {
         ...state,
         user: null,
@@ -50,6 +54,7 @@ const authReducer = (state, action) => {
         loading: false,
       };
     case 'UPDATE_USER':
+      localStorage.setItem('user', JSON.stringify(action.payload));
       return {
         ...state,
         user: action.payload,
@@ -115,6 +120,11 @@ export const AuthProvider = ({ children }) => {
   // Logout user
   const logout = () => {
     dispatch({ type: 'LOGOUT' });
+    // Clear axios headers
+    delete axios.defaults.headers.common['Authorization'];
+    delete axios.defaults.headers.common['user-id'];
+    // Redirect to home page
+    window.location.href = '/';
   };
 
   // Update user profile
@@ -154,19 +164,10 @@ export const AuthProvider = ({ children }) => {
     setAuthToken(state.token);
   }, [state.token]);
 
-  // If no user, use mock user for frontend role-based UI
-  const mockUser = state.user || {
-    _id: 'mockid',
-    firstName: 'Demo',
-    lastName: 'User',
-    email: 'demo@example.com',
-    role: state.mockRole,
-  };
-
   const value = {
-    user: mockUser,
+    user: state.user,
     token: state.token,
-    isAuthenticated: state.isAuthenticated || true,
+    isAuthenticated: state.isAuthenticated,
     loading: state.loading,
     register,
     login,

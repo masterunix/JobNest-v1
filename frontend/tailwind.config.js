@@ -4,6 +4,7 @@ module.exports = {
     "./src/**/*.{js,jsx,ts,tsx}",
     "./public/index.html"
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -18,6 +19,18 @@ module.exports = {
           700: '#5b21b6',
           800: '#4c1d95',
           900: '#3b0764',
+          dark: {
+            50: '#1e1b4b',
+            100: '#312e81',
+            200: '#4338ca',
+            300: '#6366f1',
+            400: '#8b5cf6',
+            500: '#a855f7',
+            600: '#c084fc',
+            700: '#d8b4fe',
+            800: '#e9d5ff',
+            900: '#f3e8ff',
+          }
         },
         secondary: {
           50: '#ecfeff',
@@ -30,6 +43,18 @@ module.exports = {
           700: '#0e7490',
           800: '#155e75',
           900: '#164e63',
+          dark: {
+            50: '#164e63',
+            100: '#155e75',
+            200: '#0e7490',
+            300: '#0891b2',
+            400: '#06b6d4',
+            500: '#22d3ee',
+            600: '#67e8f9',
+            700: '#a5f3fc',
+            800: '#cffafe',
+            900: '#ecfeff',
+          }
         },
         accent: {
           50: '#fff7ed',
@@ -42,9 +67,35 @@ module.exports = {
           700: '#c2410c',
           800: '#9a3412',
           900: '#7c2d12',
+          dark: {
+            50: '#7c2d12',
+            100: '#9a3412',
+            200: '#c2410c',
+            300: '#ea580c',
+            400: '#f59e42',
+            500: '#fb923c',
+            600: '#fdba74',
+            700: '#fed7aa',
+            800: '#ffedd5',
+            900: '#fff7ed',
+          }
         },
-        background: '#f8fafc',
-        text: '#1e293b',
+        background: {
+          light: '#f8fafc',
+          dark: '#0f172a',
+        },
+        text: {
+          light: '#1e293b',
+          dark: '#f1f5f9',
+        },
+        surface: {
+          light: '#ffffff',
+          dark: '#1e293b',
+        },
+        surfaceSecondary: {
+          light: '#f1f5f9',
+          dark: '#334155',
+        },
         success: {
           50: '#f0fdf4',
           100: '#dcfce7',

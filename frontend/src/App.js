@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Jobs from './pages/Jobs';
 import JobDetail from './pages/JobDetail';
@@ -31,10 +32,26 @@ function App() {
                 <Route path="/jobs/:id" element={<JobDetail />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/post-job" element={<PostJob />} />
-                <Route path="/campaigns/create" element={<CreateCampaign />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/post-job" element={
+                  <ProtectedRoute allowedRoles={['employer']}>
+                    <PostJob />
+                  </ProtectedRoute>
+                } />
+                <Route path="/campaigns/create" element={
+                  <ProtectedRoute allowedRoles={['employer']}>
+                    <CreateCampaign />
+                  </ProtectedRoute>
+                } />
                 <Route path="/campaigns" element={<Campaigns />} />
                 <Route path="/campaigns/:id" element={<CampaignDetail />} />
               </Routes>

@@ -1,75 +1,110 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { userAPI } from '../utils/api';
 import { 
   Save,
   Edit,
-  Plus
+  Plus,
+  X,
+  Loader2
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('personal');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [profile, setProfile] = useState({
-    firstName: user?.firstName || 'John',
-    lastName: user?.lastName || 'Doe',
-    email: user?.email || 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
-    location: 'San Francisco, CA',
-    website: 'https://johndoe.dev',
-    bio: 'Experienced software engineer with 5+ years in full-stack development. Passionate about building scalable applications and mentoring junior developers.',
-    skills: ['React', 'Node.js', 'Python', 'AWS', 'Docker', 'MongoDB'],
-    experience: [
-      {
-        id: 1,
-        title: 'Senior Software Engineer',
-        company: 'TechCorp',
-        location: 'San Francisco, CA',
-        startDate: '2022-01',
-        endDate: 'Present',
-        description: 'Led development of multiple web applications using React and Node.js. Mentored junior developers and implemented best practices.'
-      },
-      {
-        id: 2,
-        title: 'Full Stack Developer',
-        company: 'StartupXYZ',
-        location: 'Remote',
-        startDate: '2020-03',
-        endDate: '2021-12',
-        description: 'Built and maintained web applications using modern technologies. Collaborated with cross-functional teams.'
-      }
-    ],
-    education: [
-      {
-        id: 1,
-        degree: 'Bachelor of Science in Computer Science',
-        school: 'University of California, Berkeley',
-        location: 'Berkeley, CA',
-        startDate: '2016-09',
-        endDate: '2020-05',
-        gpa: '3.8'
-      }
-    ],
-    preferences: {
-      jobType: ['Full-time', 'Remote'],
-      salary: '$100,000 - $150,000',
-      location: ['San Francisco, CA', 'Remote'],
-      industries: ['Technology', 'Healthcare', 'Finance']
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    location: {
+      city: '',
+      state: '',
+      country: ''
+    },
+    profile: {
+      bio: '',
+      skills: [],
+      experience: 'mid'
+    },
+    company: {
+      name: '',
+      website: '',
+      industry: '',
+      size: 'small'
     }
   });
 
-  const handleSave = () => {
-    // Here you would typically save to the backend
-    setIsEditing(false);
+  // Load user data from API
+  useEffect(() => {
+    const loadProfile = async () => {
+      setLoading(true);
+      try {
+        const response = await userAPI.getProfile();
+        if (response.data.success) {
+          const userData = response.data.data;
+          setProfile({
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: userData.email || '',
+            phone: userData.phone || '',
+            location: userData.location || { city: '', state: '', country: '' },
+            profile: {
+              bio: userData.profile?.bio || '',
+              skills: userData.profile?.skills || [],
+              experience: userData.profile?.experience || 'mid'
+            },
+            company: userData.company || {
+              name: '',
+              website: '',
+              industry: '',
+              size: 'small'
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        toast.error('Failed to load profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const result = await updateProfile(profile);
+      if (result.success) {
+        toast.success('Profile updated successfully!');
+        setIsEditing(false);
+      } else {
+        toast.error(result.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast.error('Failed to save profile changes');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const addSkill = () => {
     const newSkill = prompt('Enter a new skill:');
-    if (newSkill && !profile.skills.includes(newSkill)) {
+    if (newSkill && !profile.profile.skills.includes(newSkill)) {
       setProfile(prev => ({
         ...prev,
-        skills: [...prev.skills, newSkill]
+        profile: {
+          ...prev.profile,
+          skills: [...prev.profile.skills, newSkill]
+        }
       }));
     }
   };
@@ -77,24 +112,46 @@ const Profile = () => {
   const removeSkill = (skillToRemove) => {
     setProfile(prev => ({
       ...prev,
-      skills: prev.skills.filter(skill => skill !== skillToRemove)
+      profile: {
+        ...prev.profile,
+        skills: prev.profile.skills.filter(skill => skill !== skillToRemove)
+      }
     }));
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+            <span className="ml-3 text-lg">Loading profile...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-            <p className="text-gray-600">Manage your professional information</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Profile</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage your professional information</p>
           </div>
           <button
             onClick={() => setIsEditing(!isEditing)}
             className="btn-secondary px-4 py-2"
+            disabled={saving}
           >
-            {isEditing ? (
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : isEditing ? (
               <>
                 <Save className="h-4 w-4 mr-2" />
                 Save Changes
@@ -109,143 +166,155 @@ const Profile = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-8">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg mb-8">
           <button
             onClick={() => setActiveTab('personal')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === 'personal'
-                ? 'bg-white text-primary-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-gray-700 text-primary-700 dark:text-white shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
             }`}
           >
             Personal Info
           </button>
-          <button
-            onClick={() => setActiveTab('experience')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'experience'
-                ? 'bg-white text-primary-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Experience
-          </button>
-          <button
-            onClick={() => setActiveTab('education')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'education'
-                ? 'bg-white text-primary-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Education
-          </button>
-          <button
-            onClick={() => setActiveTab('preferences')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'preferences'
-                ? 'bg-white text-primary-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Preferences
-          </button>
+          {user?.role === 'employer' && (
+            <button
+              onClick={() => setActiveTab('company')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'company'
+                  ? 'bg-white dark:bg-gray-700 text-primary-700 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              Company Info
+            </button>
+          )}
         </div>
 
         {/* Content */}
         {activeTab === 'personal' && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Personal Information</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Personal Information</h2>
             
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
                 <input
                   type="text"
                   value={profile.firstName}
                   onChange={(e) => setProfile(prev => ({ ...prev, firstName: e.target.value }))}
                   disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
                 <input
                   type="text"
                   value={profile.lastName}
                   onChange={(e) => setProfile(prev => ({ ...prev, lastName: e.target.value }))}
                   disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
                 <input
                   type="email"
                   value={profile.email}
                   onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
                   disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone</label>
                 <input
                   type="tel"
                   value={profile.phone}
                   onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
                   disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">City</label>
                 <input
                   type="text"
-                  value={profile.location}
-                  onChange={(e) => setProfile(prev => ({ ...prev, location: e.target.value }))}
+                  value={profile.location.city}
+                  onChange={(e) => setProfile(prev => ({ 
+                    ...prev, 
+                    location: { ...prev.location, city: e.target.value }
+                  }))}
                   disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">State</label>
                 <input
-                  type="url"
-                  value={profile.website}
-                  onChange={(e) => setProfile(prev => ({ ...prev, website: e.target.value }))}
+                  type="text"
+                  value={profile.location.state}
+                  onChange={(e) => setProfile(prev => ({ 
+                    ...prev, 
+                    location: { ...prev.location, state: e.target.value }
+                  }))}
                   disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
+                  className="input w-full"
                 />
               </div>
             </div>
 
             <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bio</label>
               <textarea
-                value={profile.bio}
-                onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
+                value={profile.profile.bio}
+                onChange={(e) => setProfile(prev => ({ 
+                  ...prev, 
+                  profile: { ...prev.profile, bio: e.target.value }
+                }))}
                 disabled={!isEditing}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
+                className="input w-full"
+                placeholder="Tell us about yourself..."
               />
             </div>
 
+            {user?.role === 'jobseeker' && (
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Experience Level</label>
+                <select
+                  value={profile.profile.experience}
+                  onChange={(e) => setProfile(prev => ({ 
+                    ...prev, 
+                    profile: { ...prev.profile, experience: e.target.value }
+                  }))}
+                  disabled={!isEditing}
+                  className="input w-full"
+                >
+                  <option value="entry">Entry Level</option>
+                  <option value="mid">Mid Level</option>
+                  <option value="senior">Senior Level</option>
+                  <option value="executive">Executive Level</option>
+                </select>
+              </div>
+            )}
+
             <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Skills</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Skills</label>
               <div className="flex flex-wrap gap-2 mb-2">
-                {profile.skills.map((skill, index) => (
+                {profile.profile.skills.map((skill, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm flex items-center"
+                    className="px-3 py-1 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded-full text-sm flex items-center"
                   >
                     {skill}
                     {isEditing && (
                       <button
                         onClick={() => removeSkill(skill)}
-                        className="ml-2 text-primary-500 hover:text-primary-700"
+                        className="ml-2 text-primary-500 hover:text-primary-700 dark:hover:text-primary-200"
                       >
-                        ×
+                        <X className="h-3 w-3" />
                       </button>
                     )}
                   </span>
@@ -264,147 +333,67 @@ const Profile = () => {
           </div>
         )}
 
-        {activeTab === 'experience' && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Work Experience</h2>
-              {isEditing && (
-                <button className="btn-secondary px-4 py-2 text-sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Experience
-                </button>
-              )}
-            </div>
+        {activeTab === 'company' && user?.role === 'employer' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Company Information</h2>
             
-            <div className="space-y-6">
-              {profile.experience.map((exp) => (
-                <div key={exp.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{exp.title}</h3>
-                      <p className="text-gray-600">{exp.company}</p>
-                      <p className="text-sm text-gray-500">{exp.location}</p>
-                      <p className="text-sm text-gray-500">{exp.startDate} - {exp.endDate}</p>
-                      <p className="text-gray-600 mt-2">{exp.description}</p>
-                    </div>
-                    {isEditing && (
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <Edit className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'education' && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Education</h2>
-              {isEditing && (
-                <button className="btn-secondary px-4 py-2 text-sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Education
-                </button>
-              )}
-            </div>
-            
-            <div className="space-y-6">
-              {profile.education.map((edu) => (
-                <div key={edu.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{edu.degree}</h3>
-                      <p className="text-gray-600">{edu.school}</p>
-                      <p className="text-sm text-gray-500">{edu.location}</p>
-                      <p className="text-sm text-gray-500">{edu.startDate} - {edu.endDate}</p>
-                      {edu.gpa && <p className="text-sm text-gray-500">GPA: {edu.gpa}</p>}
-                    </div>
-                    {isEditing && (
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <Edit className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'preferences' && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Job Preferences</h2>
-            
-            <div className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Job Types</label>
-                <div className="flex flex-wrap gap-2">
-                  {['Full-time', 'Part-time', 'Contract', 'Remote', 'On-site', 'Hybrid'].map((type) => (
-                    <label key={type} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={profile.preferences.jobType.includes(type)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setProfile(prev => ({
-                              ...prev,
-                              preferences: {
-                                ...prev.preferences,
-                                jobType: [...prev.preferences.jobType, type]
-                              }
-                            }));
-                          } else {
-                            setProfile(prev => ({
-                              ...prev,
-                              preferences: {
-                                ...prev.preferences,
-                                jobType: prev.preferences.jobType.filter(t => t !== type)
-                              }
-                            }));
-                          }
-                        }}
-                        disabled={!isEditing}
-                        className="mr-2"
-                      />
-                      <span className="text-sm text-gray-700">{type}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Salary Range</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Name</label>
                 <input
                   type="text"
-                  value={profile.preferences.salary}
-                  onChange={(e) => setProfile(prev => ({
-                    ...prev,
-                    preferences: { ...prev.preferences, salary: e.target.value }
+                  value={profile.company.name}
+                  onChange={(e) => setProfile(prev => ({ 
+                    ...prev, 
+                    company: { ...prev.company, name: e.target.value }
                   }))}
                   disabled={!isEditing}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
+                  className="input w-full"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Locations</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Website</label>
                 <input
-                  type="text"
-                  value={profile.preferences.location.join(', ')}
-                  onChange={(e) => setProfile(prev => ({
-                    ...prev,
-                    preferences: { 
-                      ...prev.preferences, 
-                      location: e.target.value.split(',').map(loc => loc.trim()) 
-                    }
+                  type="url"
+                  value={profile.company.website}
+                  onChange={(e) => setProfile(prev => ({ 
+                    ...prev, 
+                    company: { ...prev.company, website: e.target.value }
                   }))}
                   disabled={!isEditing}
-                  placeholder="Enter locations separated by commas"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
+                  className="input w-full"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Industry</label>
+                <input
+                  type="text"
+                  value={profile.company.industry}
+                  onChange={(e) => setProfile(prev => ({ 
+                    ...prev, 
+                    company: { ...prev.company, industry: e.target.value }
+                  }))}
+                  disabled={!isEditing}
+                  className="input w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Size</label>
+                <select
+                  value={profile.company.size}
+                  onChange={(e) => setProfile(prev => ({ 
+                    ...prev, 
+                    company: { ...prev.company, size: e.target.value }
+                  }))}
+                  disabled={!isEditing}
+                  className="input w-full"
+                >
+                  <option value="startup">Startup</option>
+                  <option value="small">Small (1-50)</option>
+                  <option value="medium">Medium (51-200)</option>
+                  <option value="large">Large (201-1000)</option>
+                  <option value="enterprise">Enterprise (1000+)</option>
+                </select>
               </div>
             </div>
           </div>
@@ -415,14 +404,23 @@ const Profile = () => {
             <button
               onClick={() => setIsEditing(false)}
               className="btn-secondary px-6 py-2"
+              disabled={saving}
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               className="btn-primary px-6 py-2"
+              disabled={saving}
             >
-              Save Changes
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
             </button>
           </div>
         )}

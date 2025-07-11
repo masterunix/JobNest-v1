@@ -12,10 +12,12 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useMode } from '../contexts/ModeContext';
 
 const JobDetail = () => {
   const { id } = useParams();
   const [isSaved, setIsSaved] = useState(false);
+  const { isDarkMode } = useMode();
 
   // Mock job data
   const job = {
@@ -65,28 +67,42 @@ As a Senior Full Stack Engineer, you will:
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <Link 
           to="/jobs" 
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6"
+          className={`inline-flex items-center mb-6 transition-colors duration-200 ${
+            isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+          }`}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Jobs
         </Link>
 
         {/* Job Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+        <div className={`rounded-lg border p-6 mb-6 transition-colors duration-200 ${
+          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-start space-x-4">
-              <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                <Building className="h-8 w-8 text-gray-500" />
+              <div className={`w-16 h-16 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+                isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
+              }`}>
+                <Building className={`h-8 w-8 transition-colors duration-200 ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                }`} />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">{job.title}</h1>
-                <p className="text-lg text-gray-600 mb-2">{job.company}</p>
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                <h1 className={`text-2xl font-bold mb-2 transition-colors duration-200 ${
+                  isDarkMode ? 'text-white' : 'text-gray-900'
+                }`}>{job.title}</h1>
+                <p className={`text-lg mb-2 transition-colors duration-200 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                }`}>{job.company}</p>
+                <div className={`flex items-center space-x-4 text-sm transition-colors duration-200 ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                   <div className="flex items-center">
                     <MapPin className="h-4 w-4 mr-1" />
                     {job.location}
@@ -105,22 +121,32 @@ As a Senior Full Stack Engineer, you will:
             <div className="flex space-x-2">
               <button
                 onClick={() => setIsSaved(!isSaved)}
-                className={`p-2 rounded-lg border ${
+                className={`p-2 rounded-lg border transition-colors duration-200 ${
                   isSaved 
                     ? 'bg-primary-50 border-primary-200 text-primary-600' 
-                    : 'border-gray-300 text-gray-400 hover:text-gray-600'
+                    : isDarkMode
+                      ? 'border-gray-600 text-gray-400 hover:text-gray-300'
+                      : 'border-gray-300 text-gray-400 hover:text-gray-600'
                 }`}
               >
                 <Heart className={`h-5 w-5 ${isSaved ? 'fill-current' : ''}`} />
               </button>
-              <button className="p-2 rounded-lg border border-gray-300 text-gray-400 hover:text-gray-600">
+              <button className={`p-2 rounded-lg border transition-colors duration-200 ${
+                isDarkMode
+                  ? 'border-gray-600 text-gray-400 hover:text-gray-300'
+                  : 'border-gray-300 text-gray-400 hover:text-gray-600'
+              }`}>
                 <Share2 className="h-5 w-5" />
               </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
+          <div className={`flex items-center justify-between pt-4 border-t transition-colors duration-200 ${
+            isDarkMode ? 'border-gray-700' : 'border-gray-200'
+          }`}>
+            <div className={`flex items-center space-x-4 text-sm transition-colors duration-200 ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}>
               <span>Posted {job.posted}</span>
               <span>•</span>
               <span>{job.applications} applications</span>
@@ -135,36 +161,54 @@ As a Senior Full Stack Engineer, you will:
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Job Description */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Job Description</h2>
+            <div className={`rounded-lg border p-6 transition-colors duration-200 ${
+              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}>
+              <h2 className={`text-xl font-semibold mb-4 transition-colors duration-200 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>Job Description</h2>
               <div className="prose prose-gray max-w-none">
                 {job.description.split('\n').map((paragraph, index) => (
-                  <p key={index} className="text-gray-600 mb-4">{paragraph}</p>
+                  <p key={index} className={`mb-4 transition-colors duration-200 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                  }`}>{paragraph}</p>
                 ))}
               </div>
             </div>
 
             {/* Requirements */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Requirements</h2>
+            <div className={`rounded-lg border p-6 transition-colors duration-200 ${
+              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}>
+              <h2 className={`text-xl font-semibold mb-4 transition-colors duration-200 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>Requirements</h2>
               <ul className="space-y-2">
                 {job.requirements.map((requirement, index) => (
                   <li key={index} className="flex items-start">
                     <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    <span className="text-gray-600">{requirement}</span>
+                    <span className={`transition-colors duration-200 ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                    }`}>{requirement}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
             {/* Benefits */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Benefits</h2>
+            <div className={`rounded-lg border p-6 transition-colors duration-200 ${
+              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}>
+              <h2 className={`text-xl font-semibold mb-4 transition-colors duration-200 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>Benefits</h2>
               <ul className="space-y-2">
                 {job.benefits.map((benefit, index) => (
                   <li key={index} className="flex items-start">
                     <span className="w-2 h-2 bg-secondary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    <span className="text-gray-600">{benefit}</span>
+                    <span className={`transition-colors duration-200 ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                    }`}>{benefit}</span>
                   </li>
                 ))}
               </ul>
@@ -174,20 +218,36 @@ As a Senior Full Stack Engineer, you will:
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Company Info */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">About {job.company}</h3>
-              <p className="text-gray-600 mb-4">{job.companyInfo.description}</p>
+            <div className={`rounded-lg border p-6 transition-colors duration-200 ${
+              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}>
+              <h3 className={`text-lg font-semibold mb-4 transition-colors duration-200 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>About {job.company}</h3>
+              <p className={`mb-4 transition-colors duration-200 ${
+                isDarkMode ? 'text-gray-300' : 'text-gray-600'
+              }`}>{job.companyInfo.description}</p>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center">
-                  <Users className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-gray-600">{job.companyInfo.size}</span>
+                  <Users className={`h-4 w-4 mr-2 transition-colors duration-200 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-400'
+                  }`} />
+                  <span className={`transition-colors duration-200 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                  }`}>{job.companyInfo.size}</span>
                 </div>
                 <div className="flex items-center">
-                  <Building className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-gray-600">{job.companyInfo.industry}</span>
+                  <Building className={`h-4 w-4 mr-2 transition-colors duration-200 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-400'
+                  }`} />
+                  <span className={`transition-colors duration-200 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                  }`}>{job.companyInfo.industry}</span>
                 </div>
                 <div className="flex items-center">
-                  <Globe className="h-4 w-4 mr-2 text-gray-400" />
+                  <Globe className={`h-4 w-4 mr-2 transition-colors duration-200 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-400'
+                  }`} />
                   <a 
                     href={job.companyInfo.website} 
                     className="text-primary-600 hover:text-primary-700"

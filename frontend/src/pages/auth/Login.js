@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
+import { useMode } from '../../contexts/ModeContext';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -10,6 +11,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { isDarkMode } = useMode();
 
   const {
     register,
@@ -35,16 +37,20 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background-light dark:bg-background-dark transition-colors duration-200">
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto h-12 w-12 bg-primary-600 rounded-full flex items-center justify-center">
             <Mail className="h-6 w-6 text-white" />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className={`mt-6 text-center text-3xl font-extrabold transition-colors duration-200 ${
+            isDarkMode ? 'text-white' : 'text-gray-900'
+          }`}>
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className={`mt-2 text-center text-sm transition-colors duration-200 ${
+            isDarkMode ? 'text-gray-300' : 'text-gray-600'
+          }`}>
             Or{' '}
             <Link
               to="/register"
@@ -57,7 +63,9 @@ const Login = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className={`block text-sm font-medium transition-colors duration-200 ${
+                isDarkMode ? 'text-gray-200' : 'text-gray-700'
+              }`}>
                 Email address
               </label>
               <div className="mt-1 relative">
@@ -84,7 +92,9 @@ const Login = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className={`block text-sm font-medium transition-colors duration-200 ${
+                isDarkMode ? 'text-gray-200' : 'text-gray-700'
+              }`}>
                 Password
               </label>
               <div className="mt-1 relative">
@@ -110,9 +120,13 @@ const Login = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
+                    <EyeOff className={`h-5 w-5 transition-colors duration-200 ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-400'
+                    }`} />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <Eye className={`h-5 w-5 transition-colors duration-200 ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-400'
+                    }`} />
                   )}
                 </button>
                 {errors.password && (
@@ -130,7 +144,9 @@ const Login = () => {
                 type="checkbox"
                 className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="remember-me" className={`ml-2 block text-sm transition-colors duration-200 ${
+                isDarkMode ? 'text-gray-200' : 'text-gray-900'
+              }`}>
                 Remember me
               </label>
             </div>
@@ -166,7 +182,9 @@ const Login = () => {
           </div>
 
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className={`text-sm transition-colors duration-200 ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+            }`}>
               Don't have an account?{' '}
               <Link
                 to="/register"
