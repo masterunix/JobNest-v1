@@ -13,7 +13,6 @@ import toast from 'react-hot-toast';
 const Profile = () => {
   const { user, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('personal');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -165,122 +164,98 @@ const Profile = () => {
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg mb-8">
-          <button
-            onClick={() => setActiveTab('personal')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'personal'
-                ? 'bg-white dark:bg-gray-700 text-primary-700 dark:text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-            }`}
-          >
-            Personal Info
-          </button>
-          {user?.role === 'employer' && (
-            <button
-              onClick={() => setActiveTab('company')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'company'
-                  ? 'bg-white dark:bg-gray-700 text-primary-700 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              Company Info
-            </button>
-          )}
-        </div>
-
         {/* Content */}
-        {activeTab === 'personal' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Personal Information</h2>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
-                <input
-                  type="text"
-                  value={profile.firstName}
-                  onChange={(e) => setProfile(prev => ({ ...prev, firstName: e.target.value }))}
-                  disabled={!isEditing}
-                  className="input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
-                <input
-                  type="text"
-                  value={profile.lastName}
-                  onChange={(e) => setProfile(prev => ({ ...prev, lastName: e.target.value }))}
-                  disabled={!isEditing}
-                  className="input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
-                <input
-                  type="email"
-                  value={profile.email}
-                  onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
-                  disabled={!isEditing}
-                  className="input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone</label>
-                <input
-                  type="tel"
-                  value={profile.phone}
-                  onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                  disabled={!isEditing}
-                  className="input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">City</label>
-                <input
-                  type="text"
-                  value={profile.location.city}
-                  onChange={(e) => setProfile(prev => ({ 
-                    ...prev, 
-                    location: { ...prev.location, city: e.target.value }
-                  }))}
-                  disabled={!isEditing}
-                  className="input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">State</label>
-                <input
-                  type="text"
-                  value={profile.location.state}
-                  onChange={(e) => setProfile(prev => ({ 
-                    ...prev, 
-                    location: { ...prev.location, state: e.target.value }
-                  }))}
-                  disabled={!isEditing}
-                  className="input w-full"
-                />
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bio</label>
-              <textarea
-                value={profile.profile.bio}
-                onChange={(e) => setProfile(prev => ({ 
-                  ...prev, 
-                  profile: { ...prev.profile, bio: e.target.value }
-                }))}
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+            Personal Information
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
+              <input
+                type="text"
+                value={profile.firstName}
+                onChange={(e) => setProfile(prev => ({ ...prev, firstName: e.target.value }))}
                 disabled={!isEditing}
-                rows={4}
                 className="input w-full"
-                placeholder="Tell us about yourself..."
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
+              <input
+                type="text"
+                value={profile.lastName}
+                onChange={(e) => setProfile(prev => ({ ...prev, lastName: e.target.value }))}
+                disabled={!isEditing}
+                className="input w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+              <input
+                type="email"
+                value={profile.email}
+                onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
+                disabled={!isEditing}
+                className="input w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone</label>
+              <input
+                type="tel"
+                value={profile.phone}
+                onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
+                disabled={!isEditing}
+                className="input w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">City</label>
+              <input
+                type="text"
+                value={profile.location.city}
+                onChange={(e) => setProfile(prev => ({ 
+                  ...prev, 
+                  location: { ...prev.location, city: e.target.value }
+                }))}
+                disabled={!isEditing}
+                className="input w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">State</label>
+              <input
+                type="text"
+                value={profile.location.state}
+                onChange={(e) => setProfile(prev => ({ 
+                  ...prev, 
+                  location: { ...prev.location, state: e.target.value }
+                }))}
+                disabled={!isEditing}
+                className="input w-full"
+              />
+            </div>
+          </div>
 
-            {user?.role === 'jobseeker' && (
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bio</label>
+            <textarea
+              value={profile.profile.bio}
+              onChange={(e) => setProfile(prev => ({ 
+                ...prev, 
+                profile: { ...prev.profile, bio: e.target.value }
+              }))}
+              disabled={!isEditing}
+              rows={4}
+              className="input w-full"
+              placeholder="Tell us about yourself..."
+            />
+          </div>
+
+          {/* Only show experience and skills for jobseekers */}
+          {user?.role === 'jobseeker' && (
+            <>
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Experience Level</label>
                 <select
@@ -298,106 +273,123 @@ const Profile = () => {
                   <option value="executive">Executive Level</option>
                 </select>
               </div>
-            )}
-
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Skills</label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {profile.profile.skills.map((skill, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded-full text-sm flex items-center"
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Skills</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {profile.profile.skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded-full text-sm flex items-center"
+                    >
+                      {skill}
+                      {isEditing && (
+                        <button
+                          onClick={() => removeSkill(skill)}
+                          className="ml-2 text-primary-500 hover:text-primary-700 dark:hover:text-primary-200"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </span>
+                  ))}
+                </div>
+                {isEditing && (
+                  <button
+                    onClick={addSkill}
+                    className="btn-secondary px-4 py-2 text-sm"
                   >
-                    {skill}
-                    {isEditing && (
-                      <button
-                        onClick={() => removeSkill(skill)}
-                        className="ml-2 text-primary-500 hover:text-primary-700 dark:hover:text-primary-200"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    )}
-                  </span>
-                ))}
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Skill
+                  </button>
+                )}
               </div>
-              {isEditing && (
-                <button
-                  onClick={addSkill}
-                  className="btn-secondary px-4 py-2 text-sm"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Skill
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+            </>
+          )}
 
-        {activeTab === 'company' && user?.role === 'employer' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Company Information</h2>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Name</label>
-                <input
-                  type="text"
-                  value={profile.company.name}
-                  onChange={(e) => setProfile(prev => ({ 
-                    ...prev, 
-                    company: { ...prev.company, name: e.target.value }
-                  }))}
-                  disabled={!isEditing}
-                  className="input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Website</label>
-                <input
-                  type="url"
-                  value={profile.company.website}
-                  onChange={(e) => setProfile(prev => ({ 
-                    ...prev, 
-                    company: { ...prev.company, website: e.target.value }
-                  }))}
-                  disabled={!isEditing}
-                  className="input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Industry</label>
-                <input
-                  type="text"
-                  value={profile.company.industry}
-                  onChange={(e) => setProfile(prev => ({ 
-                    ...prev, 
-                    company: { ...prev.company, industry: e.target.value }
-                  }))}
-                  disabled={!isEditing}
-                  className="input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Size</label>
-                <select
-                  value={profile.company.size}
-                  onChange={(e) => setProfile(prev => ({ 
-                    ...prev, 
-                    company: { ...prev.company, size: e.target.value }
-                  }))}
-                  disabled={!isEditing}
-                  className="input w-full"
-                >
-                  <option value="startup">Startup</option>
-                  <option value="small">Small (1-50)</option>
-                  <option value="medium">Medium (51-200)</option>
-                  <option value="large">Large (201-1000)</option>
-                  <option value="enterprise">Enterprise (1000+)</option>
-                </select>
+          {/* Company Info for employers */}
+          {user?.role === 'employer' && (
+            <div className="mt-10 pt-8 border-t border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Company Information</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Name</label>
+                  <input
+                    type="text"
+                    value={profile.company.name}
+                    onChange={(e) => setProfile(prev => ({
+                      ...prev,
+                      company: { ...prev.company, name: e.target.value }
+                    }))}
+                    disabled={!isEditing}
+                    className="input w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Website</label>
+                  <input
+                    type="text"
+                    value={profile.company.website}
+                    onChange={(e) => setProfile(prev => ({
+                      ...prev,
+                      company: { ...prev.company, website: e.target.value }
+                    }))}
+                    disabled={!isEditing}
+                    className="input w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Industry</label>
+                  <input
+                    type="text"
+                    value={profile.company.industry}
+                    onChange={(e) => setProfile(prev => ({
+                      ...prev,
+                      company: { ...prev.company, industry: e.target.value }
+                    }))}
+                    disabled={!isEditing}
+                    className="input w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Country</label>
+                  <input
+                    type="text"
+                    value={profile.location.country}
+                    onChange={(e) => setProfile(prev => ({
+                      ...prev,
+                      location: { ...prev.location, country: e.target.value }
+                    }))}
+                    disabled={!isEditing}
+                    className="input w-full"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Save button for all info */}
+          {isEditing && (
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={handleSave}
+                className="btn-primary px-6 py-2 text-lg"
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
 
         {isEditing && (
           <div className="flex justify-end space-x-4 mt-8">
@@ -407,20 +399,6 @@ const Profile = () => {
               disabled={saving}
             >
               Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              className="btn-primary px-6 py-2"
-              disabled={saving}
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
             </button>
           </div>
         )}

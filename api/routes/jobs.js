@@ -2,6 +2,8 @@ const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const Job = require('../models/Job');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 
 const router = express.Router();
 
@@ -133,7 +135,7 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/jobs
 // @desc    Create a new job posting
 // @access  Private (Employers only)
-router.post('/', [
+router.post('/', auth, [
   body('title').trim().isLength({ min: 5, max: 100 }).withMessage('Job title must be between 5 and 100 characters'),
   body('description').isLength({ min: 50 }).withMessage('Job description must be at least 50 characters'),
   body('company.name').trim().notEmpty().withMessage('Company name is required'),
@@ -156,19 +158,8 @@ router.post('/', [
       });
     }
 
-    // In a real app, you'd get the employer ID from JWT token
-    const employerId = req.headers['user-id'] || req.body.employerId;
-    
-    if (!employerId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Employer ID is required'
-      });
-    }
-
-    // Verify the user is an employer
-    const employer = await User.findById(employerId);
-    if (!employer || employer.role !== 'employer') {
+    // Use authenticated user
+    if (!req.user || req.user.role !== 'employer') {
       return res.status(403).json({
         success: false,
         message: 'Only employers can create job postings'
@@ -177,7 +168,7 @@ router.post('/', [
 
     const jobData = {
       ...req.body,
-      employer: employerId
+      employer: req.user._id
     };
 
     const job = new Job(jobData);
@@ -191,7 +182,6 @@ router.post('/', [
       message: 'Job created successfully',
       data: populatedJob
     });
-
   } catch (error) {
     console.error('Create job error:', error);
     res.status(500).json({
@@ -365,6 +355,51 @@ router.post('/:id/apply', [
       success: false,
       message: 'Server error'
     });
+  }
+});
+
+// @route   GET /api/jobs/admin
+// @desc    List all jobs (admin only)
+// @access  Admin
+router.get('/admin', auth, admin, async (req, res) => {
+  try {
+    const jobs = await Job.find().populate('employer', 'firstName lastName email company');
+    res.json({ success: true, jobs });
+  } catch (error) {
+    console.error('Admin list jobs error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/jobs/:id/admin
+// @desc    Edit any job (admin only)
+// @access  Admin
+router.put('/:id/admin', auth, admin, async (req, res) => {
+  try {
+    const job = await Job.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+    res.json({ success: true, job });
+  } catch (error) {
+    console.error('Admin edit job error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/jobs/:id/admin
+// @desc    Delete any job (admin only)
+// @access  Admin
+router.delete('/:id/admin', auth, admin, async (req, res) => {
+  try {
+    const job = await Job.findByIdAndDelete(req.params.id);
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+    res.json({ success: true, message: 'Job deleted' });
+  } catch (error) {
+    console.error('Admin delete job error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

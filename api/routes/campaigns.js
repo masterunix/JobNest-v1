@@ -6,6 +6,14 @@ const Contribution = require('../models/Contribution');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const multer = require('multer');
 const path = require('path');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 const router = express.Router();
 
@@ -16,8 +24,8 @@ const upload = multer({
 
 // @route   POST /api/campaigns
 // @desc    Create a new campaign
-// @access  Private (Owner only)
-router.post('/', [
+// @access  Private (Owner/Employer only)
+router.post('/', auth, [
   body('title').trim().isLength({ min: 5, max: 120 }).withMessage('Title must be 5-120 chars'),
   body('goal').isNumeric().withMessage('Goal must be a number'),
   body('deadline').isISO8601().toDate().withMessage('Deadline required'),
@@ -26,19 +34,18 @@ router.post('/', [
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array());
     return res.status(400).json({ success: false, errors: errors.array() });
   }
   try {
-    // In a real app, get owner from JWT
-    const ownerId = req.headers['user-id'] || req.body.ownerId;
-    if (!ownerId) return res.status(401).json({ success: false, message: 'Owner ID required' });
-    const owner = await User.findById(ownerId);
-    if (!owner) return res.status(404).json({ success: false, message: 'Owner not found' });
-    // Only allow certain roles
-    if (!['owner', 'employer'].includes(owner.role)) {
+    // Debug logging
+    console.log('req.user:', req.user);
+    console.log('req.headers:', req.headers);
+    // Require owner/employer role
+    if (!req.user || !['owner', 'employer'].includes(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Only owners/employers can create campaigns' });
     }
-    const campaign = new Campaign({ ...req.body, owner: ownerId });
+    const campaign = new Campaign({ ...req.body, owner: req.user._id });
     await campaign.save();
     res.status(201).json({ success: true, data: campaign });
   } catch (err) {
@@ -121,43 +128,61 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// @route   POST /api/campaigns/:id/contribute
-// @desc    Contribute to a campaign
+// @route   POST /api/campaigns/:id/razorpay-order
+// @desc    Create a Razorpay order for a campaign contribution
 // @access  Private (Backer only)
-router.post('/:id/contribute', [
-  body('amount').isNumeric().withMessage('Amount must be a number'),
-  body('paymentMethod').isIn(['card', 'upi', 'paypal', 'other']).withMessage('Invalid payment method')
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ success: false, errors: errors.array() });
-  }
+router.post('/:id/razorpay-order', auth, async (req, res) => {
   try {
-    // In a real app, get contributor from JWT
-    const contributorId = req.headers['user-id'] || req.body.contributorId;
-    if (!contributorId) return res.status(401).json({ success: false, message: 'Contributor ID required' });
+    const { amount } = req.body;
     const campaign = await Campaign.findById(req.params.id);
     if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
-    // Only allow if campaign is approved and not closed
-    if (campaign.status !== 'approved') {
-      return res.status(403).json({ success: false, message: 'Campaign not open for contributions' });
+    const order = await razorpay.orders.create({
+      amount: Math.round(amount * 100), // in paise
+      currency: 'INR',
+      receipt: `campaign_${campaign._id}_${Date.now()}`,
+      payment_capture: 1,
+      notes: {
+        campaignId: campaign._id.toString(),
+        userId: req.user._id.toString(),
+      }
+    });
+    res.json({ success: true, order });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Razorpay error', error: err.message });
+  }
+});
+
+// @route   POST /api/campaigns/:id/razorpay-verify
+// @desc    Verify Razorpay payment and record contribution
+// @access  Private (Backer only)
+router.post('/:id/razorpay-verify', auth, async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;
+    const generated_signature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(razorpay_order_id + '|' + razorpay_payment_id)
+      .digest('hex');
+    if (generated_signature !== razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Invalid payment signature' });
     }
+    // Record contribution
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
     const contribution = new Contribution({
       campaign: campaign._id,
-      contributor: contributorId,
-      amount: req.body.amount,
-      paymentMethod: req.body.paymentMethod,
-      paymentStatus: 'succeeded' // Simulate success for now
+      contributor: req.user._id,
+      amount,
+      paymentMethod: 'razorpay',
+      paymentStatus: 'succeeded',
+      paymentId: razorpay_payment_id
     });
     await contribution.save();
-    // Update campaign raised and contributors
-    campaign.raised += req.body.amount;
-    if (!campaign.contributors.includes(contributorId)) {
-      campaign.contributors.push(contributorId);
+    campaign.raised += Number(amount);
+    if (!campaign.contributors.includes(req.user._id)) {
+      campaign.contributors.push(req.user._id);
     }
     campaign.contributionsCount += 1;
     await campaign.save();
-    res.status(201).json({ success: true, data: contribution });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
@@ -302,6 +327,51 @@ router.post('/:id/upload-media', upload.single('file'), async (req, res) => {
     res.json({ success: true, url, type: fileType });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+});
+
+// @route   GET /api/campaigns/admin
+// @desc    List all campaigns (admin only)
+// @access  Admin
+router.get('/admin', auth, admin, async (req, res) => {
+  try {
+    const campaigns = await Campaign.find().populate('owner', 'firstName lastName email');
+    res.json({ success: true, campaigns });
+  } catch (error) {
+    console.error('Admin list campaigns error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/campaigns/:id/admin
+// @desc    Edit any campaign (admin only)
+// @access  Admin
+router.put('/:id/admin', auth, admin, async (req, res) => {
+  try {
+    const campaign = await Campaign.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!campaign) {
+      return res.status(404).json({ success: false, message: 'Campaign not found' });
+    }
+    res.json({ success: true, campaign });
+  } catch (error) {
+    console.error('Admin edit campaign error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/campaigns/:id/admin
+// @desc    Delete any campaign (admin only)
+// @access  Admin
+router.delete('/:id/admin', auth, admin, async (req, res) => {
+  try {
+    const campaign = await Campaign.findByIdAndDelete(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ success: false, message: 'Campaign not found' });
+    }
+    res.json({ success: true, message: 'Campaign deleted' });
+  } catch (error) {
+    console.error('Admin delete campaign error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

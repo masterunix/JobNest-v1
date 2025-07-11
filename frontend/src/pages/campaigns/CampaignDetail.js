@@ -1,48 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useMode } from '../../contexts/ModeContext';
-
-const mockCampaigns = [
-  {
-    id: 1,
-    title: 'Build a School in Kenya',
-    category: 'Education',
-    goal: 20000,
-    raised: 12000,
-    deadline: '2024-08-30',
-    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80',
-    story: 'Help us build a school for children in rural Kenya. Your support will provide classrooms, books, and hope.',
-    contributors: [
-      { name: 'Alice', amount: 1000 },
-      { name: 'Bob', amount: 500 },
-      { name: 'Charlie', amount: 2000 },
-      { name: 'Dana', amount: 800 },
-    ]
-  },
-  {
-    id: 2,
-    title: 'Clean Water for All',
-    category: 'Social Impact',
-    goal: 10000,
-    raised: 9500,
-    deadline: '2024-07-15',
-    image: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80',
-    story: 'Join us in bringing clean water to remote villages. Every dollar helps save lives.',
-    contributors: [
-      { name: 'Eve', amount: 2000 },
-      { name: 'Frank', amount: 1500 },
-      { name: 'Grace', amount: 3000 },
-    ]
-  }
-];
+import { campaignAPI } from '../../utils/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const CampaignDetail = () => {
   const { id } = useParams();
   const { isDarkMode } = useMode();
-  const [campaign, setCampaign] = useState(
-    mockCampaigns.find(c => c.id === Number(id))
-  );
+  const { user } = useAuth();
+  const [campaign, setCampaign] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [contribName, setContribName] = useState('');
   const [contribAmount, setContribAmount] = useState('');
@@ -50,7 +19,32 @@ const CampaignDetail = () => {
   const [copied, setCopied] = useState(false);
   const [modalStep, setModalStep] = useState(1);
 
-  if (!campaign) {
+  useEffect(() => {
+    const fetchCampaign = async () => {
+      setLoading(true);
+      setNotFound(false);
+      try {
+        const response = await campaignAPI.getCampaign(id);
+        if (response.data.success) {
+          setCampaign(response.data.data);
+        } else {
+          setNotFound(true);
+        }
+      } catch (err) {
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCampaign();
+  }, [id]);
+
+  if (loading) {
+    return <div className={`max-w-2xl mx-auto py-16 text-center transition-colors duration-200 ${
+      isDarkMode ? 'text-gray-400' : 'text-gray-500'
+    }`}>Loading campaign...</div>;
+  }
+  if (notFound || !campaign) {
     return <div className={`max-w-2xl mx-auto py-16 text-center transition-colors duration-200 ${
       isDarkMode ? 'text-gray-400' : 'text-gray-500'
     }`}>Campaign not found.</div>;
@@ -86,21 +80,44 @@ const CampaignDetail = () => {
     setModalStep(2); // Go to payment step
   };
 
-  const handlePayment = (method) => {
-    // Simulate payment success
-    setCampaign(prev => ({
-      ...prev,
-      raised: prev.raised + Number(contribAmount),
-      contributors: [
-        ...prev.contributors,
-        { name: contribName, amount: Number(contribAmount), method }
-      ]
-    }));
-    setShowModal(false);
-    setModalStep(1);
-    setContribName('');
-    setContribAmount('');
-    toast.success('Thank you for your contribution!');
+  const handleRazorpay = async () => {
+    setError('');
+    if (!contribName.trim() || !contribAmount || isNaN(contribAmount) || Number(contribAmount) <= 0) {
+      setError('Please enter a valid name and amount.');
+      return;
+    }
+    try {
+      const { data } = await campaignAPI.createRazorpayOrder(campaign._id, { amount: contribAmount });
+      const options = {
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+        amount: data.order.amount,
+        currency: data.order.currency,
+        name: campaign.title,
+        description: campaign.story,
+        order_id: data.order.id,
+        handler: async function (response) {
+          try {
+            await campaignAPI.verifyRazorpayPayment(campaign._id, {
+              ...response,
+              amount: contribAmount,
+            });
+            toast.success('Thank you for your contribution!');
+            setShowModal(false);
+          } catch (err) {
+            setError('Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: {
+          name: contribName,
+          email: user?.email,
+        },
+        theme: { color: '#3399cc' }
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      setError('Failed to initiate payment. Please try again.');
+    }
   };
 
   return (
@@ -138,8 +155,8 @@ const CampaignDetail = () => {
             }`}>
               <span><span className={`font-semibold transition-colors duration-200 ${
                 isDarkMode ? 'text-white' : 'text-primary-700'
-              }`}>${campaign.raised.toLocaleString()}</span> raised</span>
-              <span>Goal: ${campaign.goal.toLocaleString()}</span>
+              }`}>₹{campaign.raised.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span> raised</span>
+              <span>Goal: ₹{campaign.goal.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span>
               <span>Deadline: {campaign.deadline}</span>
             </div>
           </div>
@@ -208,7 +225,7 @@ const CampaignDetail = () => {
                   }`}>{contrib.name}</span>
                   <span className={`font-semibold transition-colors duration-200 ${
                     isDarkMode ? 'text-white' : 'text-primary-700'
-                  }`}>${contrib.amount.toLocaleString()}</span>
+                  }`}>₹{contrib.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span>
                 </li>
               ))}
             </ul>
@@ -247,7 +264,7 @@ const CampaignDetail = () => {
                   <div>
                     <label className={`block text-sm font-medium mb-1 transition-colors duration-200 ${
                       isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                    }`}>Amount (USD)</label>
+                    }`}>Amount (INR)</label>
                     <input
                       type="number"
                       value={contribAmount}
@@ -257,13 +274,16 @@ const CampaignDetail = () => {
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                           : 'border-gray-300'
                       }`}
-                      placeholder="e.g., 50"
+                      placeholder="e.g., 500"
                     />
                   </div>
                   {error && (
                     <div className="text-red-500 text-sm">{error}</div>
                   )}
-                  <button type="submit" className="btn-primary w-full">Continue to Payment</button>
+                  <button type="button" onClick={handleRazorpay} className="btn-primary w-full">
+                    Pay with Razorpay
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2">Payments are processed securely via Razorpay in INR.</p>
                 </form>
               )}
               {modalStep === 2 && (
@@ -278,22 +298,8 @@ const CampaignDetail = () => {
                       isDarkMode ? 'text-gray-300' : 'text-gray-600'
                     }`}>
                       <p>Name: {contribName}</p>
-                      <p>Amount: ${contribAmount}</p>
+                      <p>Amount: ₹{contribAmount}</p>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => handlePayment('card')}
-                      className="w-full btn-primary"
-                    >
-                      Pay with Card
-                    </button>
-                    <button
-                      onClick={() => handlePayment('paypal')}
-                      className="w-full btn-secondary"
-                    >
-                      Pay with PayPal
-                    </button>
                   </div>
                 </div>
               )}

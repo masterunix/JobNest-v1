@@ -11,6 +11,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState('jobseeker');
+  const [company, setCompany] = useState({ name: '', website: '', industry: '', country: 'India' });
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const { mode, isDarkMode } = useMode();
@@ -34,6 +35,7 @@ const Register = () => {
       const formData = {
         ...data,
         role,
+        ...(role === 'employer' ? { company } : {}),
       };
       const result = await registerUser(formData);
       if (result.success) {
@@ -172,6 +174,65 @@ const Register = () => {
                 )}
               </div>
             </div>
+            {/* Company fields for employer */}
+            {role === 'employer' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium transition-colors duration-200">
+                    Company Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={company.name}
+                    onChange={e => setCompany(prev => ({ ...prev, name: e.target.value }))}
+                    className="input"
+                    placeholder="Company name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium transition-colors duration-200">
+                    Company Website
+                  </label>
+                  <input
+                    type="url"
+                    value={company.website}
+                    onChange={e => setCompany(prev => ({ ...prev, website: e.target.value }))}
+                    className="input"
+                    placeholder="https://company.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium transition-colors duration-200">
+                    Industry
+                  </label>
+                  <input
+                    type="text"
+                    value={company.industry}
+                    onChange={e => setCompany(prev => ({ ...prev, industry: e.target.value }))}
+                    className="input"
+                    placeholder="e.g., Technology"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium transition-colors duration-200">
+                    Country
+                  </label>
+                  <select
+                    value={company.country}
+                    onChange={e => setCompany(prev => ({ ...prev, country: e.target.value }))}
+                    className="input"
+                  >
+                    <option value="India">India</option>
+                    <option value="USA">USA</option>
+                    <option value="UK">UK</option>
+                    <option value="Canada">Canada</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            )}
 
             <div>
               <label htmlFor="email" className={`block text-sm font-medium transition-colors duration-200 ${

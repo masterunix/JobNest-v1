@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { campaignAPI } from '../../utils/api';
 
 const categories = [
   'All', 'Tech', 'Arts', 'Social Impact', 'Education', 'Health', 'Environment', 'Other'
@@ -16,10 +17,21 @@ const Campaigns = () => {
   const [sortBy, setSortBy] = useState('latest');
   const [campaigns, setCampaigns] = useState([]);
 
-  // Load campaigns from localStorage
+  // Load campaigns from backend
   useEffect(() => {
-    const savedCampaigns = JSON.parse(localStorage.getItem('campaigns') || '[]');
-    setCampaigns(savedCampaigns);
+    const fetchCampaigns = async () => {
+      try {
+        const response = await campaignAPI.getCampaigns();
+        if (response.data.success) {
+          setCampaigns(response.data.data);
+        } else {
+          setCampaigns([]);
+        }
+      } catch (error) {
+        setCampaigns([]);
+      }
+    };
+    fetchCampaigns();
   }, []);
 
   let filtered = campaigns;
@@ -74,7 +86,7 @@ const Campaigns = () => {
         {/* Campaign Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {filtered.map(campaign => (
-            <div key={campaign.id} className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-4 flex flex-col">
+            <div key={campaign._id} className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-4 flex flex-col">
               <div className="bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 h-40 w-full flex items-center justify-center">
                 <span className="text-gray-500 dark:text-gray-400 text-sm">No Image</span>
               </div>
@@ -92,7 +104,7 @@ const Campaigns = () => {
                 </span>
               </div>
               <div className="text-sm mb-2">
-                <span className="font-medium text-primary-700 dark:text-white">${campaign.raised.toLocaleString()}</span> raised of ${campaign.goal.toLocaleString()}
+                <span className="font-medium text-primary-700 dark:text-white">₹{campaign.raised.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span> raised of ₹{campaign.goal.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 {campaign.contributors} contributors
@@ -101,7 +113,7 @@ const Campaigns = () => {
                 Deadline: {campaign.deadline}
               </div>
               <Link
-                to={`/campaigns/${campaign.id}`}
+                to={`/campaigns/${campaign._id}`}
                 className="mt-auto btn-primary px-4 py-2 rounded text-center text-white block"
               >
                 View Campaign

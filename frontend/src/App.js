@@ -15,6 +15,9 @@ import PostJob from './pages/PostJob';
 import CreateCampaign from './pages/campaigns/CreateCampaign';
 import Campaigns from './pages/campaigns/Campaigns';
 import CampaignDetail from './pages/campaigns/CampaignDetail';
+import AdminPanel from './pages/AdminPanel';
+import EditCampaign from './pages/campaigns/EditCampaign';
+import EditJob from './pages/EditJob';
 import { AuthProvider } from './contexts/AuthContext';
 import { ModeProvider } from './contexts/ModeContext';
 
@@ -48,12 +51,27 @@ function App() {
                   </ProtectedRoute>
                 } />
                 <Route path="/campaigns/create" element={
-                  <ProtectedRoute allowedRoles={['employer']}>
+                  <ProtectedRoute allowedRoles={['employer', 'owner']}>
                     <CreateCampaign />
                   </ProtectedRoute>
                 } />
                 <Route path="/campaigns" element={<Campaigns />} />
                 <Route path="/campaigns/:id" element={<CampaignDetail />} />
+                <Route path="/campaigns/edit/:id" element={
+                  <ProtectedRoute allowedRoles={['employer', 'owner']}>
+                    <EditCampaign />
+                  </ProtectedRoute>
+                } />
+                <Route path="/jobs/edit/:id" element={
+                  <ProtectedRoute allowedRoles={['employer']}>
+                    <EditJob />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminPanel />
+                  </ProtectedRoute>
+                } />
               </Routes>
             </main>
             <Footer />

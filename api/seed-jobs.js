@@ -64,7 +64,7 @@ const sampleJobs = [
       period: 'yearly'
     },
     type: 'full-time',
-    category: 'product',
+    category: 'technology',
     benefits: ['Health Insurance', 'Flexible Hours', 'Remote Work'],
     tags: ['product', 'strategy', 'remote', 'startup']
   },
@@ -190,6 +190,27 @@ async function seedJobs() {
       });
       await employer.save();
       console.log('✅ Created test employer');
+    }
+
+    // Create or update an admin user
+    let admin = await User.findOne({ email: 'admin@jobnest.com' });
+    if (!admin) {
+      admin = new User({
+        firstName: 'Admin',
+        lastName: 'User',
+        email: 'admin@jobnest.com',
+        password: 'admin123',
+        role: 'admin',
+        isVerified: true
+      });
+      await admin.save();
+      console.log('✅ Created admin user: admin@jobnest.com / admin123');
+    } else {
+      admin.role = 'admin';
+      admin.password = 'admin123';
+      admin.isVerified = true;
+      await admin.save();
+      console.log('✅ Updated admin user: admin@jobnest.com / admin123');
     }
 
     // Clear existing jobs

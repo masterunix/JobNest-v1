@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
   const setAuthToken = (token) => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      axios.defaults.headers.common['user-id'] = state.user?._id;
+      axios.defaults.headers.common['user-id'] = state.user?._id || state.user?.id;
     } else {
       delete axios.defaults.headers.common['Authorization'];
       delete axios.defaults.headers.common['user-id'];
@@ -132,6 +132,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await axios.put('/api/users/profile', formData);
       dispatch({ type: 'UPDATE_USER', payload: res.data.data });
+      await loadUser(); // Refresh user object with latest info
       return { success: true };
     } catch (err) {
       const error = err.response?.data?.message || 'Profile update failed';

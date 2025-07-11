@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
+    // 'admin' users have full access to all data and management features
     enum: ['jobseeker', 'employer', 'owner', 'backer', 'admin'],
     default: 'jobseeker'
   },

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Briefcase, DollarSign, Clock, Building, Loader2 } from 'lucide-react';
-import { useMode } from '../contexts/ModeContext';
 import { jobAPI } from '../utils/api';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,10 +23,11 @@ const Jobs = () => {
     totalPages: 1,
     totalJobs: 0
   });
+  const [appliedJobIds, setAppliedJobIds] = useState([]);
   
-  const { isDarkMode } = useMode();
   const location_router = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Get search params from URL
   useEffect(() => {
@@ -77,6 +78,17 @@ const Jobs = () => {
     fetchJobs(1);
   }, [searchTerm, location, role, filters]);
 
+  useEffect(() => {
+    if (user && user.role === 'jobseeker') {
+      jobAPI.getApplicationsForUser()
+        .then(res => {
+          const apps = res.data.applications || res.data.data || [];
+          setAppliedJobIds(apps.map(app => app._id));
+        })
+        .catch(() => setAppliedJobIds([]));
+    }
+  }, [user]);
+
   // Handle search submission
   const handleSearch = (e) => {
     e.preventDefault();
@@ -96,60 +108,42 @@ const Jobs = () => {
     fetchJobs(page);
   };
 
+  const isApplied = (jobId) => appliedJobIds.includes(jobId);
+
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-200">
+    <div className="min-h-screen bg-gray-50">
       {/* Search Header */}
-      <div className={`border-b transition-colors duration-200 ${
-        isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      }`}>
+      <div className="border-b bg-white border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className={`text-3xl font-bold mb-6 transition-colors duration-200 ${
-            isDarkMode ? 'text-white' : 'text-gray-900'
-          }`}>Find your next job</h1>
+          <h1 className="text-3xl font-bold mb-6 text-gray-900">Find your next job</h1>
           
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1 relative">
-              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-colors duration-200 ${
-                isDarkMode ? 'text-gray-400' : 'text-gray-400'
-              }`} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search jobs, companies, skills..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                  isDarkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                    : 'border-gray-300'
-                }`}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
               />
             </div>
             <div className="flex gap-4">
               <div className="relative">
-                <MapPin className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-colors duration-200 ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-400'
-                }`} />
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Location"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className={`pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                    isDarkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                      : 'border-gray-300'
-                  }`}
+                  className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
                 />
               </div>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className={`px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                  isDarkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white' 
-                    : 'border-gray-300'
-                }`}
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
               >
                 <option value="">All Roles</option>
                 <option value="engineering">Engineering</option>
@@ -162,9 +156,7 @@ const Jobs = () => {
               </select>
               <button
                 type="submit"
-                className={`px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 ${
-                  isDarkMode ? 'hover:bg-primary-500' : ''
-                }`}
+                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200"
               >
                 Search
               </button>
@@ -177,8 +169,8 @@ const Jobs = () => {
               onClick={() => handleFilterChange('type', 'remote')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
                 filters.type === 'remote'
-                  ? (isDarkMode ? 'bg-primary-900 text-primary-200' : 'bg-primary-100 text-primary-700')
-                  : (isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-primary-50')
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-primary-50'
               }`}
             >
               Remote
@@ -187,8 +179,8 @@ const Jobs = () => {
               onClick={() => handleFilterChange('type', 'full-time')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
                 filters.type === 'full-time'
-                  ? (isDarkMode ? 'bg-primary-900 text-primary-200' : 'bg-primary-100 text-primary-700')
-                  : (isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-primary-50')
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-primary-50'
               }`}
             >
               Full-time
@@ -197,8 +189,8 @@ const Jobs = () => {
               onClick={() => handleFilterChange('type', 'part-time')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
                 filters.type === 'part-time'
-                  ? (isDarkMode ? 'bg-primary-900 text-primary-200' : 'bg-primary-100 text-primary-700')
-                  : (isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-primary-50')
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-primary-50'
               }`}
             >
               Part-time
@@ -207,8 +199,8 @@ const Jobs = () => {
               onClick={() => handleFilterChange('type', 'contract')}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
                 filters.type === 'contract'
-                  ? (isDarkMode ? 'bg-primary-900 text-primary-200' : 'bg-primary-100 text-primary-700')
-                  : (isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-primary-50')
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-primary-50'
               }`}
             >
               Contract
@@ -237,18 +229,14 @@ const Jobs = () => {
         {loading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
-            <span className={`ml-3 text-lg transition-colors duration-200 ${
-              isDarkMode ? 'text-gray-300' : 'text-gray-600'
-            }`}>Loading jobs...</span>
+            <span className="ml-3 text-lg text-gray-600">Loading jobs...</span>
           </div>
         )}
 
         {/* Error State */}
         {error && !loading && (
           <div className="text-center py-12">
-            <p className={`text-lg mb-4 transition-colors duration-200 ${
-              isDarkMode ? 'text-red-400' : 'text-red-600'
-            }`}>{error}</p>
+            <p className="text-lg mb-4 text-red-600">{error}</p>
             <button
               onClick={() => fetchJobs(1)}
               className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -261,9 +249,7 @@ const Jobs = () => {
         {/* No Jobs Found */}
         {!loading && !error && jobs.length === 0 && (
           <div className="text-center py-12">
-            <p className={`text-lg mb-4 transition-colors duration-200 ${
-              isDarkMode ? 'text-gray-300' : 'text-gray-600'
-            }`}>No jobs found matching your criteria.</p>
+            <p className="text-lg mb-4 text-gray-600">No jobs found matching your criteria.</p>
             <button
               onClick={() => {
                 setSearchTerm('');
@@ -288,40 +274,24 @@ const Jobs = () => {
         {!loading && !error && jobs.length > 0 && (
           <>
             <div className="mb-6">
-              <p className={`text-sm transition-colors duration-200 ${
-                isDarkMode ? 'text-gray-400' : 'text-gray-600'
-              }`}>
+              <p className="text-sm text-gray-600">
                 Showing {jobs.length} of {pagination.totalJobs} jobs
               </p>
             </div>
             
             <div className="grid gap-6">
               {jobs.map((job) => (
-                <div key={job._id} className={`rounded-lg border p-6 hover:shadow-md transition-all duration-200 ${
-                  isDarkMode 
-                    ? 'bg-gray-800 border-gray-700 hover:shadow-lg hover:shadow-gray-900/50' 
-                    : 'bg-white border-gray-200'
-                }`}>
+                <div key={job._id} className="rounded-lg border p-6 hover:shadow-md transition-all duration-200 bg-white border-gray-200">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center transition-colors duration-200 ${
-                        isDarkMode ? 'bg-gray-700' : 'bg-gray-100'
-                      }`}>
-                        <Building className={`h-6 w-6 transition-colors duration-200 ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                        }`} />
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100">
+                        <Building className="h-6 w-6 text-gray-500" />
                       </div>
                       <div className="flex-1">
-                        <h3 className={`text-lg font-semibold mb-1 transition-colors duration-200 ${
-                          isDarkMode ? 'text-white' : 'text-gray-900'
-                        }`}>{job.title}</h3>
-                        <p className={`mb-2 transition-colors duration-200 ${
-                          isDarkMode ? 'text-gray-300' : 'text-gray-600'
-                        }`}>{job.company?.name || job.employer?.company || 'Company'}</p>
+                        <h3 className="text-lg font-semibold mb-1 text-gray-900">{job.title}</h3>
+                        <p className="mb-2 text-gray-600">{job.company?.name || job.employer?.company || 'Company'}</p>
                         
-                        <div className={`flex items-center space-x-4 text-sm mb-3 transition-colors duration-200 ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
+                        <div className="flex items-center space-x-4 text-sm mb-3 text-gray-500">
                           <div className="flex items-center">
                             <MapPin className="h-4 w-4 mr-1" />
                             {job.location?.city && job.location?.state 
@@ -346,9 +316,7 @@ const Jobs = () => {
                           </div>
                         </div>
 
-                        <p className={`mb-3 transition-colors duration-200 ${
-                          isDarkMode ? 'text-gray-300' : 'text-gray-600'
-                        }`}>
+                        <p className="mb-3 text-gray-600">
                           {job.description?.substring(0, 200)}...
                         </p>
                         
@@ -358,11 +326,7 @@ const Jobs = () => {
                             {job.requirements.skills.slice(0, 5).map((skill, index) => (
                               <span
                                 key={index}
-                                className={`px-3 py-1 rounded-full text-sm transition-colors duration-200 ${
-                                  isDarkMode 
-                                    ? 'bg-primary-900 text-primary-200' 
-                                    : 'bg-primary-50 text-primary-700'
-                                }`}
+                                className="px-3 py-1 rounded-full text-sm bg-primary-50 text-primary-700"
                               >
                                 {skill}
                               </span>
@@ -371,20 +335,22 @@ const Jobs = () => {
                         )}
 
                         <div className="flex items-center justify-between">
-                          <span className={`text-sm transition-colors duration-200 ${
-                            isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                          }`}>
+                          <span className="text-sm text-gray-500">
                             Posted {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Recently'}
                           </span>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-col sm:flex-row-reverse">
                             <button 
                               onClick={() => navigate(`/jobs/${job._id}`)}
-                              className="btn-secondary px-4 py-2 text-sm"
+                              className="btn-primary px-6 py-2 text-sm order-1"
+                              disabled={isApplied(job._id)}
+                            >
+                              {isApplied(job._id) ? 'Applied' : 'Apply Now'}
+                            </button>
+                            <button 
+                              onClick={() => navigate(`/jobs/${job._id}`)}
+                              className="btn-secondary px-4 py-2 text-sm order-2"
                             >
                               View Job
-                            </button>
-                            <button className="btn-primary px-6 py-2 text-sm">
-                              Apply Now
                             </button>
                           </div>
                         </div>

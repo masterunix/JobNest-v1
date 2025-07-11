@@ -1,30 +1,17 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 
 const router = express.Router();
 
 // @route   GET /api/users/profile
 // @desc    Get current user profile
 // @access  Private
-router.get('/profile', async (req, res) => {
+router.get('/profile', auth, async (req, res) => {
   try {
-    const userId = req.headers['user-id'];
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Access denied. No user ID provided.'
-      });
-    }
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
+    const user = req.user;
 
     res.json({
       success: true,
@@ -43,7 +30,7 @@ router.get('/profile', async (req, res) => {
 // @route   PUT /api/users/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/profile', [
+router.put('/profile', auth, [
   body('firstName').optional().trim().isLength({ min: 2, max: 50 }).withMessage('First name must be between 2 and 50 characters'),
   body('lastName').optional().trim().isLength({ min: 2, max: 50 }).withMessage('Last name must be between 2 and 50 characters'),
   body('phone').optional().matches(/^[\+]?[1-9][\d]{0,15}$/).withMessage('Please enter a valid phone number'),
@@ -60,22 +47,7 @@ router.put('/profile', [
       });
     }
 
-    const userId = req.headers['user-id'];
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Access denied. No user ID provided.'
-      });
-    }
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
+    const user = req.user;
 
     // Update user fields
     const updateFields = ['firstName', 'lastName', 'phone', 'location', 'profile', 'company'];
@@ -105,7 +77,7 @@ router.put('/profile', [
 // @route   PUT /api/users/password
 // @desc    Change user password
 // @access  Private
-router.put('/password', [
+router.put('/password', auth, [
   body('currentPassword').notEmpty().withMessage('Current password is required'),
   body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
 ], async (req, res) => {
@@ -118,23 +90,8 @@ router.put('/password', [
       });
     }
 
-    const userId = req.headers['user-id'];
+    const user = await User.findById(req.user._id).select('+password');
     const { currentPassword, newPassword } = req.body;
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Access denied. No user ID provided.'
-      });
-    }
-
-    const user = await User.findById(userId).select('+password');
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
 
     // Verify current password
     const isCurrentPasswordValid = await user.comparePassword(currentPassword);
@@ -166,18 +123,9 @@ router.put('/password', [
 // @route   GET /api/users/applications
 // @desc    Get user's job applications
 // @access  Private (Job seekers only)
-router.get('/applications', async (req, res) => {
+router.get('/applications', auth, async (req, res) => {
   try {
-    const userId = req.headers['user-id'];
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Access denied. No user ID provided.'
-      });
-    }
-
-    const user = await User.findById(userId);
+    const user = req.user;
     if (!user || user.role !== 'jobseeker') {
       return res.status(403).json({
         success: false,
@@ -188,7 +136,7 @@ router.get('/applications', async (req, res) => {
     // Find jobs where user has applied
     const Job = require('../models/Job');
     const applications = await Job.find({
-      'applications.applicant': userId
+      'applications.applicant': user._id
     })
     .populate('employer', 'firstName lastName email company')
     .select('title company applications status createdAt')
@@ -197,21 +145,17 @@ router.get('/applications', async (req, res) => {
     // Format the response
     const userApplications = applications.map(job => {
       const userApplication = job.applications.find(
-        app => app.applicant.toString() === userId
+        app => app.applicant.toString() === user._id.toString()
       );
       return {
-        jobId: job._id,
-        jobTitle: job.title,
-        company: job.company,
-        status: userApplication.status,
-        appliedAt: userApplication.appliedAt,
-        jobStatus: job.status
+        ...job,
+        userApplication
       };
     });
 
     res.json({
       success: true,
-      data: userApplications
+      applications: userApplications
     });
 
   } catch (error) {
@@ -226,18 +170,10 @@ router.get('/applications', async (req, res) => {
 // @route   GET /api/users/jobs
 // @desc    Get employer's job postings
 // @access  Private (Employers only)
-router.get('/jobs', async (req, res) => {
+router.get('/jobs', auth, async (req, res) => {
   try {
-    const userId = req.headers['user-id'];
+    const user = req.user;
     
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Access denied. No user ID provided.'
-      });
-    }
-
-    const user = await User.findById(userId);
     if (!user || user.role !== 'employer') {
       return res.status(403).json({
         success: false,
@@ -246,7 +182,7 @@ router.get('/jobs', async (req, res) => {
     }
 
     const Job = require('../models/Job');
-    const jobs = await Job.find({ employer: userId })
+    const jobs = await Job.find({ employer: user._id })
       .populate('applications.applicant', 'firstName lastName email profile')
       .sort({ createdAt: -1 })
       .lean();
@@ -268,7 +204,7 @@ router.get('/jobs', async (req, res) => {
 // @route   PUT /api/users/jobs/:jobId/applications/:applicationId
 // @desc    Update application status (for employers)
 // @access  Private (Job owner only)
-router.put('/jobs/:jobId/applications/:applicationId', [
+router.put('/jobs/:jobId/applications/:applicationId', auth, [
   body('status').isIn(['pending', 'reviewed', 'shortlisted', 'rejected', 'hired']).withMessage('Invalid status')
 ], async (req, res) => {
   try {
@@ -282,9 +218,9 @@ router.put('/jobs/:jobId/applications/:applicationId', [
 
     const { jobId, applicationId } = req.params;
     const { status } = req.body;
-    const userId = req.headers['user-id'];
+    const user = req.user;
     
-    if (!userId) {
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: 'Access denied. No user ID provided.'
@@ -302,7 +238,7 @@ router.put('/jobs/:jobId/applications/:applicationId', [
     }
 
     // Verify the user owns this job
-    if (job.employer.toString() !== userId) {
+    if (job.employer.toString() !== user._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this application'
@@ -322,6 +258,51 @@ router.put('/jobs/:jobId/applications/:applicationId', [
       success: false,
       message: 'Server error'
     });
+  }
+});
+
+// @route   GET /api/users
+// @desc    List all users (admin only)
+// @access  Admin
+router.get('/', auth, admin, async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json({ success: true, users });
+  } catch (error) {
+    console.error('Admin list users error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/users/:id
+// @desc    Edit any user (admin only)
+// @access  Admin
+router.put('/:id', auth, admin, async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error('Admin edit user error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/users/:id
+// @desc    Delete any user (admin only)
+// @access  Admin
+router.delete('/:id', auth, admin, async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.json({ success: true, message: 'User deleted' });
+  } catch (error) {
+    console.error('Admin delete user error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

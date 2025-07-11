@@ -1,33 +1,49 @@
 import React, { useState } from 'react';
 import { 
   Plus,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
-import { useMode } from '../contexts/ModeContext';
+import { jobAPI } from '../utils/api';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
 
 const PostJob = () => {
+  const { user } = useAuth();
   const [jobData, setJobData] = useState({
     title: '',
-    company: '',
-    location: '',
-    type: 'Full-time',
+    description: '',
+    requirements: {
+      skills: [''],
+      experience: 'mid',
+      education: 'bachelor'
+    },
+    location: {
+      type: 'onsite',
+      address: {
+        city: '',
+        state: '',
+        country: 'USA'
+      }
+    },
     salary: {
       min: '',
       max: '',
-      currency: 'USD'
+      currency: 'USD',
+      period: 'yearly'
     },
-    experience: '',
-    description: '',
-    requirements: [''],
     benefits: [''],
-    skills: [''],
+    type: 'full-time',
+    category: 'engineering',
     contactEmail: '',
     applicationDeadline: ''
   });
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
   const totalSteps = 3;
-  const { isDarkMode } = useMode();
+  const navigate = useNavigate();
 
   const handleInputChange = (field, value) => {
     setJobData(prev => ({
@@ -67,11 +83,54 @@ const PostJob = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically submit to the backend
-    console.log('Job data:', jobData);
-    alert('Job posted successfully!');
+    if (!user?.company?.name) {
+      toast.error('Your company name is missing. Please complete your profile before posting a job.');
+      return;
+    }
+    setSubmitting(true);
+    
+    try {
+      // Format the data according to the API schema
+      const formattedJobData = {
+        title: jobData.title,
+        description: jobData.description,
+        requirements: {
+          skills: jobData.requirements.skills.filter(skill => skill.trim()),
+          experience: jobData.requirements.experience,
+          education: jobData.requirements.education
+        },
+        location: jobData.location,
+        salary: {
+          min: parseInt(jobData.salary.min),
+          max: parseInt(jobData.salary.max),
+          currency: jobData.salary.currency,
+          period: jobData.salary.period
+        },
+        benefits: jobData.benefits.filter(benefit => benefit.trim()),
+        type: jobData.type,
+        category: jobData.category,
+        deadline: jobData.applicationDeadline ? new Date(jobData.applicationDeadline) : null,
+        company: {
+          name: user?.company?.name || '',
+        },
+      };
+
+      const response = await jobAPI.createJob(formattedJobData);
+      
+      if (response.data.success) {
+        toast.success('Job posted successfully!');
+        navigate('/dashboard');
+      } else {
+        toast.error(response.data.message || 'Failed to post job');
+      }
+    } catch (error) {
+      console.error('Error posting job:', error);
+      toast.error(error.response?.data?.message || 'Failed to post job. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const nextStep = () => {
@@ -87,37 +146,27 @@ const PostJob = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-200">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className={`text-3xl font-bold mb-2 transition-colors duration-200 ${
-            isDarkMode ? 'text-white' : 'text-gray-900'
-          }`}>Post a Job</h1>
-          <p className={`transition-colors duration-200 ${
-            isDarkMode ? 'text-gray-300' : 'text-gray-600'
-          }`}>Create a new job listing to attract top talent</p>
+          <h1 className="text-3xl font-bold mb-2 text-gray-900">Post a Job</h1>
+          <p className="text-gray-600">Create a new job listing to attract top talent</p>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className={`text-sm font-medium transition-colors duration-200 ${
-              isDarkMode ? 'text-gray-200' : 'text-gray-700'
-            }`}>
+            <span className="text-sm font-medium text-gray-700">
               Step {currentStep} of {totalSteps}
             </span>
-            <span className={`text-sm transition-colors duration-200 ${
-              isDarkMode ? 'text-gray-400' : 'text-gray-500'
-            }`}>
+            <span className="text-sm text-gray-500">
               {Math.round((currentStep / totalSteps) * 100)}% Complete
             </span>
           </div>
-          <div className={`w-full rounded-full h-2 transition-colors duration-200 ${
-            isDarkMode ? 'bg-gray-700' : 'bg-gray-200'
-          }`}>
+          <div className="w-full rounded-full h-2 bg-gray-200">
             <div 
-              className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(currentStep / totalSteps) * 100}%` }}
             ></div>
           </div>
@@ -126,18 +175,12 @@ const PostJob = () => {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
-            <div className={`rounded-lg border p-6 transition-colors duration-200 ${
-              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-xl font-semibold mb-6 transition-colors duration-200 ${
-                isDarkMode ? 'text-white' : 'text-gray-900'
-              }`}>Basic Information</h2>
+            <div className="rounded-lg border p-6 bg-white border-gray-200">
+              <h2 className="text-xl font-semibold mb-6 text-gray-900">Basic Information</h2>
               
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Job Title *
                   </label>
                   <input
@@ -146,100 +189,97 @@ const PostJob = () => {
                     value={jobData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                     placeholder="e.g., Senior Frontend Developer"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                        : 'border-gray-300'
-                    }`}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
-                    Company *
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Company Name
                   </label>
                   <input
                     type="text"
-                    required
-                    value={jobData.company}
-                    onChange={(e) => handleInputChange('company', e.target.value)}
-                    placeholder="Your company name"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                        : 'border-gray-300'
-                    }`}
+                    value={user?.company?.name || ''}
+                    readOnly
+                    className="w-full px-3 py-2 border rounded-lg bg-gray-100 border-gray-300 cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
-                    Location *
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Job Category *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     required
-                    value={jobData.location}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
-                    placeholder="e.g., San Francisco, CA or Remote"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                        : 'border-gray-300'
-                    }`}
-                  />
+                    value={jobData.category}
+                    onChange={(e) => handleInputChange('category', e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+                  >
+                    <option value="engineering">Engineering</option>
+                    <option value="design">Design</option>
+                    <option value="product">Product</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="sales">Sales</option>
+                    <option value="operations">Operations</option>
+                    <option value="finance">Finance</option>
+                    <option value="hr">Human Resources</option>
+                    <option value="legal">Legal</option>
+                    <option value="other">Other</option>
+                  </select>
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Job Type *
                   </label>
                   <select
                     required
                     value={jobData.type}
                     onChange={(e) => handleInputChange('type', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white' 
-                        : 'border-gray-300'
-                    }`}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   >
-                    <option value="Full-time">Full-time</option>
-                    <option value="Part-time">Part-time</option>
-                    <option value="Contract">Contract</option>
-                    <option value="Internship">Internship</option>
+                    <option value="full-time">Full-time</option>
+                    <option value="part-time">Part-time</option>
+                    <option value="contract">Contract</option>
+                    <option value="internship">Internship</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
-                    Experience Level
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Location Type *
                   </label>
-                  <input
-                    type="text"
-                    value={jobData.experience}
-                    onChange={(e) => handleInputChange('experience', e.target.value)}
-                    placeholder="e.g., 3-5 years"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                        : 'border-gray-300'
-                    }`}
-                  />
+                  <select
+                    required
+                    value={jobData.location.type}
+                    onChange={(e) => handleInputChange('location', { ...jobData.location, type: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+                  >
+                    <option value="onsite">On-site</option>
+                    <option value="remote">Remote</option>
+                    <option value="hybrid">Hybrid</option>
+                  </select>
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Experience Level
+                  </label>
+                  <select
+                    value={jobData.requirements.experience}
+                    onChange={(e) => handleInputChange('requirements', { ...jobData.requirements, experience: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+                  >
+                    <option value="entry">Entry Level</option>
+                    <option value="mid">Mid Level</option>
+                    <option value="senior">Senior Level</option>
+                    <option value="lead">Lead</option>
+                    <option value="executive">Executive</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Contact Email *
                   </label>
                   <input
@@ -248,20 +288,73 @@ const PostJob = () => {
                     value={jobData.contactEmail}
                     onChange={(e) => handleInputChange('contactEmail', e.target.value)}
                     placeholder="hr@company.com"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                        : 'border-gray-300'
-                    }`}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   />
                 </div>
               </div>
 
+              {/* Location Address */}
               <div className="grid md:grid-cols-3 gap-4 mt-6">
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={jobData.location.address.city}
+                    onChange={(e) => handleInputChange('location', { 
+                      ...jobData.location, 
+                      address: { ...jobData.location.address, city: e.target.value }
+                    })}
+                    placeholder="San Francisco"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    value={jobData.location.address.state}
+                    onChange={(e) => handleInputChange('location', { 
+                      ...jobData.location, 
+                      address: { ...jobData.location.address, state: e.target.value }
+                    })}
+                    placeholder="CA"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Country
+                  </label>
+                  <select
+                    value={jobData.location.address.country}
+                    onChange={(e) => handleInputChange('location', { 
+                      ...jobData.location, 
+                      address: { ...jobData.location.address, country: e.target.value }
+                    })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+                  >
+                    <option value="India">India</option>
+                    <option value="USA">USA</option>
+                    <option value="Canada">Canada</option>
+                    <option value="UK">UK</option>
+                    <option value="Germany">Germany</option>
+                    <option value="France">France</option>
+                    <option value="Australia">Australia</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Salary Section */}
+              <div className="grid md:grid-cols-4 gap-4 mt-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Minimum Salary
                   </label>
                   <input
@@ -269,18 +362,12 @@ const PostJob = () => {
                     value={jobData.salary.min}
                     onChange={(e) => handleSalaryChange('min', e.target.value)}
                     placeholder="50000"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                        : 'border-gray-300'
-                    }`}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Maximum Salary
                   </label>
                   <input
@@ -288,33 +375,39 @@ const PostJob = () => {
                     value={jobData.salary.max}
                     onChange={(e) => handleSalaryChange('max', e.target.value)}
                     placeholder="80000"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                        : 'border-gray-300'
-                    }`}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Currency
                   </label>
                   <select
                     value={jobData.salary.currency}
                     onChange={(e) => handleSalaryChange('currency', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white' 
-                        : 'border-gray-300'
-                    }`}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   >
+                    <option value="Rs.">Rs.</option>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                     <option value="GBP">GBP</option>
                     <option value="CAD">CAD</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Period
+                  </label>
+                  <select
+                    value={jobData.salary.period}
+                    onChange={(e) => handleSalaryChange('period', e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
+                  >
+                    <option value="yearly">Yearly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="hourly">Hourly</option>
                   </select>
                 </div>
               </div>
@@ -323,18 +416,12 @@ const PostJob = () => {
 
           {/* Step 2: Job Details */}
           {currentStep === 2 && (
-            <div className={`rounded-lg border p-6 transition-colors duration-200 ${
-              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-xl font-semibold mb-6 transition-colors duration-200 ${
-                isDarkMode ? 'text-white' : 'text-gray-900'
-              }`}>Job Details</h2>
+            <div className="rounded-lg border p-6 bg-white border-gray-200">
+              <h2 className="text-xl font-semibold mb-6 text-gray-900">Job Details</h2>
               
               <div className="space-y-6">
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Job Description *
                   </label>
                   <textarea
@@ -343,77 +430,34 @@ const PostJob = () => {
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     rows={6}
                     placeholder="Describe the role, responsibilities, and what makes this position exciting..."
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                        : 'border-gray-300'
-                    }`}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
-                    Requirements
-                  </label>
-                  {jobData.requirements.map((req, index) => (
-                    <div key={index} className="flex items-center space-x-2 mb-2">
-                      <input
-                        type="text"
-                        value={req}
-                        onChange={(e) => handleArrayFieldChange('requirements', index, e.target.value)}
-                        placeholder="e.g., 3+ years of React experience"
-                        className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                          isDarkMode 
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                            : 'border-gray-300'
-                        }`}
-                      />
-                      {jobData.requirements.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeArrayField('requirements', index)}
-                          className="p-2 text-red-500 hover:text-red-700"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => addArrayField('requirements')}
-                    className="btn-secondary px-4 py-2 text-sm"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Requirement
-                  </button>
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Required Skills
                   </label>
-                  {jobData.skills.map((skill, index) => (
+                  {jobData.requirements.skills.map((skill, index) => (
                     <div key={index} className="flex items-center space-x-2 mb-2">
                       <input
                         type="text"
                         value={skill}
-                        onChange={(e) => handleArrayFieldChange('skills', index, e.target.value)}
+                        onChange={(e) => {
+                          const newSkills = [...jobData.requirements.skills];
+                          newSkills[index] = e.target.value;
+                          handleInputChange('requirements', { ...jobData.requirements, skills: newSkills });
+                        }}
                         placeholder="e.g., React, Node.js, Python"
-                        className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                          isDarkMode 
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                            : 'border-gray-300'
-                        }`}
+                        className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                       />
-                      {jobData.skills.length > 1 && (
+                      {jobData.requirements.skills.length > 1 && (
                         <button
                           type="button"
-                          onClick={() => removeArrayField('skills', index)}
+                          onClick={() => {
+                            const newSkills = jobData.requirements.skills.filter((_, i) => i !== index);
+                            handleInputChange('requirements', { ...jobData.requirements, skills: newSkills });
+                          }}
                           className="p-2 text-red-500 hover:text-red-700"
                         >
                           <X className="h-4 w-4" />
@@ -423,8 +467,11 @@ const PostJob = () => {
                   ))}
                   <button
                     type="button"
-                    onClick={() => addArrayField('skills')}
-                    className="btn-secondary px-4 py-2 text-sm"
+                    onClick={() => {
+                      const newSkills = [...jobData.requirements.skills, ''];
+                      handleInputChange('requirements', { ...jobData.requirements, skills: newSkills });
+                    }}
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Skill
@@ -436,18 +483,12 @@ const PostJob = () => {
 
           {/* Step 3: Benefits & Final Details */}
           {currentStep === 3 && (
-            <div className={`rounded-lg border p-6 transition-colors duration-200 ${
-              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              <h2 className={`text-xl font-semibold mb-6 transition-colors duration-200 ${
-                isDarkMode ? 'text-white' : 'text-gray-900'
-              }`}>Benefits & Final Details</h2>
+            <div className="rounded-lg border p-6 bg-white border-gray-200">
+              <h2 className="text-xl font-semibold mb-6 text-gray-900">Benefits & Final Details</h2>
               
               <div className="space-y-6">
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Benefits & Perks
                   </label>
                   {jobData.benefits.map((benefit, index) => (
@@ -457,11 +498,7 @@ const PostJob = () => {
                         value={benefit}
                         onChange={(e) => handleArrayFieldChange('benefits', index, e.target.value)}
                         placeholder="e.g., Health insurance, 401(k) matching"
-                        className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                          isDarkMode 
-                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                            : 'border-gray-300'
-                        }`}
+                        className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                       />
                       {jobData.benefits.length > 1 && (
                         <button
@@ -477,7 +514,7 @@ const PostJob = () => {
                   <button
                     type="button"
                     onClick={() => addArrayField('benefits')}
-                    className="btn-secondary px-4 py-2 text-sm"
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Benefit
@@ -485,40 +522,26 @@ const PostJob = () => {
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                  }`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Application Deadline
                   </label>
                   <input
                     type="date"
                     value={jobData.applicationDeadline}
                     onChange={(e) => handleInputChange('applicationDeadline', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 ${
-                      isDarkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white' 
-                        : 'border-gray-300'
-                    }`}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   />
                 </div>
 
-                <div className={`border rounded-lg p-4 transition-colors duration-200 ${
-                  isDarkMode 
-                    ? 'bg-blue-900/20 border-blue-700' 
-                    : 'bg-blue-50 border-blue-200'
-                }`}>
-                  <h3 className={`text-sm font-medium mb-2 transition-colors duration-200 ${
-                    isDarkMode ? 'text-blue-200' : 'text-blue-900'
-                  }`}>Review Your Job Posting</h3>
-                  <div className={`text-sm space-y-1 transition-colors duration-200 ${
-                    isDarkMode ? 'text-blue-300' : 'text-blue-700'
-                  }`}>
+                <div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
+                  <h3 className="text-sm font-medium mb-2 text-blue-900">Review Your Job Posting</h3>
+                  <div className="text-sm space-y-1 text-blue-700">
                     <p><strong>Title:</strong> {jobData.title}</p>
-                    <p><strong>Company:</strong> {jobData.company}</p>
-                    <p><strong>Location:</strong> {jobData.location}</p>
+                    <p><strong>Category:</strong> {jobData.category}</p>
                     <p><strong>Type:</strong> {jobData.type}</p>
+                    <p><strong>Location:</strong> {jobData.location.type} - {jobData.location.address.city}, {jobData.location.address.state}</p>
                     {jobData.salary.min && jobData.salary.max && (
-                      <p><strong>Salary:</strong> {jobData.salary.min} - {jobData.salary.max} {jobData.salary.currency}</p>
+                      <p><strong>Salary:</strong> {jobData.salary.min} - {jobData.salary.max} {jobData.salary.currency} ({jobData.salary.period})</p>
                     )}
                   </div>
                 </div>
@@ -532,7 +555,7 @@ const PostJob = () => {
               type="button"
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="btn-secondary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
@@ -542,16 +565,24 @@ const PostJob = () => {
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="btn-primary px-6 py-2"
+                  className="inline-flex items-center px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   Next
                 </button>
               ) : (
                 <button
                   type="submit"
-                  className="btn-primary px-8 py-2"
+                  disabled={submitting}
+                  className="inline-flex items-center px-8 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Post Job
+                  {submitting ? (
+                    <>
+                      <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                      Posting...
+                    </>
+                  ) : (
+                    'Post Job'
+                  )}
                 </button>
               )}
             </div>

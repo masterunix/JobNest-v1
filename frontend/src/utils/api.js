@@ -18,8 +18,8 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    if (user && user._id) {
-      config.headers['user-id'] = user._id;
+    if (user && (user._id || user.id)) {
+      config.headers['user-id'] = user._id || user.id;
     }
     
     return config;
@@ -60,6 +60,7 @@ export const jobAPI = {
   
   // Apply for job
   applyForJob: (id, data) => api.post(`/jobs/${id}/apply`, data),
+  getApplicationsForUser: () => api.get('/jobs/applications'),
 };
 
 // User API functions
@@ -82,6 +83,7 @@ export const userAPI = {
   // Update application status
   updateApplicationStatus: (jobId, applicationId, status) => 
     api.put(`/users/jobs/${jobId}/applications/${applicationId}`, { status }),
+  getProfileCompletion: () => api.get('/users/profile/completion'),
 };
 
 // Auth API functions
@@ -97,6 +99,28 @@ export const authAPI = {
   
   // Forgot password
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+};
+
+// Campaign API functions
+export const campaignAPI = {
+  // Get all campaigns
+  getCampaigns: (params = {}) => api.get('/campaigns', { params }),
+
+  // Get single campaign
+  getCampaign: (id) => api.get(`/campaigns/${id}`),
+
+  // Create campaign
+  createCampaign: (data) => api.post('/campaigns', data),
+
+  // Razorpay integration
+  createRazorpayOrder: (campaignId, data) => api.post(`/campaigns/${campaignId}/razorpay-order`, data),
+  verifyRazorpayPayment: (campaignId, data) => api.post(`/campaigns/${campaignId}/razorpay-verify`, data),
+
+  // Update campaign
+  updateCampaign: (id, data) => api.put(`/campaigns/${id}`, data),
+
+  // Delete campaign
+  deleteCampaign: (id) => api.delete(`/campaigns/${id}`),
 };
 
 export default api; 

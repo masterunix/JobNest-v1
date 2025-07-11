@@ -10,7 +10,7 @@ const Navbar = () => {
   const { darkMode, toggleDarkMode } = useMode();
 
   return (
-    <nav className="sticky top-0 z-40 bg-surface-light dark:bg-surface-dark border-b border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-200">
+    <nav className={`sticky top-0 z-40 border-b border-gray-200 shadow-sm ${darkMode ? 'bg-surface-dark' : 'bg-white'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
@@ -31,7 +31,6 @@ const Navbar = () => {
           >
             {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
-          
           {isAuthenticated ? (
             <>
               <div className="flex items-center space-x-2">
@@ -40,9 +39,41 @@ const Navbar = () => {
                   {user?.firstName || user?.fullName || 'User'}
                 </span>
               </div>
-              <Link to="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors">
-                Dashboard
-              </Link>
+              {user?.role === 'admin' ? (
+                <Link to="/admin" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 font-medium transition-colors">
+                  Admin Panel
+                </Link>
+              ) : (
+                <Link to="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
+                  Dashboard
+                </Link>
+              )}
+              {/* Role-based main action button */}
+              {user?.role === 'employer' && (
+                <Link to="/post-job" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
+                  Post Job
+                </Link>
+              )}
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 font-medium transition-colors">
+                  Admin Panel
+                </Link>
+              )}
+              {user?.role === 'jobseeker' && (
+                <Link to="/jobs" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
+                  Jobs
+                </Link>
+              )}
+              {user?.role === 'owner' && (
+                <Link to="/campaigns/create" className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-medium transition-colors">
+                  Create Campaign
+                </Link>
+              )}
+              {user?.role === 'backer' && (
+                <Link to="/campaigns" className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-medium transition-colors">
+                  Campaigns
+                </Link>
+              )}
               <button
                 onClick={() => {
                   if (window.confirm('Are you sure you want to logout?')) {
@@ -57,8 +88,8 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors">Log In</Link>
-              <Link to="/register" className="btn-primary px-5 py-2">Sign Up</Link>
+              <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">Log In</Link>
+              <Link to="/register" className="inline-flex items-center px-5 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Sign Up</Link>
             </>
           )}
         </div>
@@ -69,7 +100,7 @@ const Navbar = () => {
       </div>
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-surface-light dark:bg-surface-dark border-t border-gray-200 dark:border-gray-700 shadow-lg transition-colors duration-200">
+        <div className={`md:hidden ${darkMode ? 'bg-surface-dark' : 'bg-white'} border-t border-gray-200 dark:border-gray-700 shadow-lg`}>
           <div className="flex flex-col p-4 space-y-2">
             {/* Dark Mode Toggle for Mobile */}
             <button
@@ -79,7 +110,6 @@ const Navbar = () => {
               {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
-            
             {isAuthenticated ? (
               <>
                 <div className="flex items-center space-x-2 py-2">
@@ -88,9 +118,41 @@ const Navbar = () => {
                     {user?.firstName || user?.fullName || 'User'}
                   </span>
                 </div>
-                <Link to="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium py-2 transition-colors">
-                  Dashboard
-                </Link>
+                {user?.role === 'admin' ? (
+                  <Link to="/admin" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 font-medium py-2 transition-colors">
+                    Admin Panel
+                  </Link>
+                ) : (
+                  <Link to="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium py-2 transition-colors">
+                    Dashboard
+                  </Link>
+                )}
+                {/* Role-based main action button */}
+                {user?.role === 'employer' && (
+                  <Link to="/post-job" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium py-2 transition-colors">
+                    Post Job
+                  </Link>
+                )}
+                {user?.role === 'admin' && (
+                  <Link to="/admin" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 font-medium py-2 transition-colors">
+                    Admin Panel
+                  </Link>
+                )}
+                {user?.role === 'jobseeker' && (
+                  <Link to="/jobs" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium py-2 transition-colors">
+                    Jobs
+                  </Link>
+                )}
+                {user?.role === 'owner' && (
+                  <Link to="/campaigns/create" className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-medium py-2 transition-colors">
+                    Create Campaign
+                  </Link>
+                )}
+                {user?.role === 'backer' && (
+                  <Link to="/campaigns" className="text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 font-medium py-2 transition-colors">
+                    Campaigns
+                  </Link>
+                )}
                 <button
                   onClick={() => {
                     if (window.confirm('Are you sure you want to logout?')) {
@@ -105,8 +167,8 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium py-2 transition-colors">Log In</Link>
-                <Link to="/register" className="btn-primary px-5 py-2">Sign Up</Link>
+                <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium py-2 transition-colors">Log In</Link>
+                <Link to="/register" className="inline-flex items-center px-5 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Sign Up</Link>
               </>
             )}
           </div>

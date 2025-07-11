@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -161,32 +162,13 @@ router.post('/login', [
 // @route   GET /api/auth/me
 // @desc    Get current user profile
 // @access  Private
-router.get('/me', async (req, res) => {
+router.get('/me', auth, async (req, res) => {
   try {
-    // This would typically use middleware to verify JWT token
-    // For now, we'll assume the user ID is passed in headers or query
-    const userId = req.headers['user-id'] || req.query.userId;
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Access denied. No token provided.'
-      });
-    }
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
+    const user = req.user;
     res.json({
       success: true,
       user
     });
-
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({
