@@ -186,7 +186,7 @@ const Home = () => {
               <div className="card p-6 text-center">
                 <div className="text-4xl mb-4">💰</div>
                 <div className="font-semibold mb-2">Transparent offers</div>
-                <div className="text-gray-500 dark:text-gray-400">See salary, stock options, and more before you apply.</div>
+                <div className="text-gray-500 dark:text-gray-400">See salary, and more before you apply.</div>
               </div>
               <div className="card p-6 text-center">
                 <div className="text-4xl mb-4">⚡</div>
@@ -211,8 +211,8 @@ const Home = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="card p-6 text-center">
               <div className="text-4xl mb-4">👥</div>
-              <div className="font-semibold mb-2">10M+ startup-ready candidates</div>
-              <div className="text-gray-500 dark:text-gray-400">Tap into a huge, engaged talent pool.</div>
+              <div className="font-semibold mb-2">A complete solution</div>
+              <div className="text-gray-500 dark:text-gray-400">Everthing Just Works.</div>
             </div>
             <div className="card p-6 text-center">
               <div className="text-4xl mb-4">🛠️</div>
@@ -222,7 +222,7 @@ const Home = () => {
             <div className="card p-6 text-center">
               <div className="text-4xl mb-4">🤖</div>
               <div className="font-semibold mb-2">AI-powered matching</div>
-              <div className="text-gray-500 dark:text-gray-400">Let JobNest AI find and schedule the best candidates for you.</div>
+              <div className="text-gray-500 dark:text-gray-400">An Exciting and Upcoming Project where you can Post Jobs.</div>
             </div>
           </div>
         </div>
@@ -233,16 +233,16 @@ const Home = () => {
           <h2 className="text-3xl font-bold text-center mb-10 text-primary-700 dark:text-white">From our users</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="card p-6">
-              <div className="mb-4 text-lg font-semibold">"I got my tech job on JobNest 4 years ago and I'm still happy! Pays well, great culture, and unlimited PTO."</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">- Sarah, Software Engineer</div>
+              <div className="mb-4 text-lg font-semibold">"I got my tech job on JobNest. Pays well, great culture, and unlimited PTO."</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">- Sanjeev, Software Engineer</div>
             </div>
             <div className="card p-6">
               <div className="mb-4 text-lg font-semibold">"Half of the offers I give are sourced from JobNest. It's the best product for anyone looking for startup talent."</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">- Michael, Recruiter</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">- Nadeem, Recruiter</div>
             </div>
             <div className="card p-6">
-              <div className="mb-4 text-lg font-semibold">"I love JobNest. I got my current job at a startup entirely through the site last year - it's super easy to use and I love the UI."</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">- Priya, Product Manager</div>
+              <div className="mb-4 text-lg font-semibold">"I love JobNest. - it's super easy to use and I love the UI."</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">- Raj, Product Manager</div>
             </div>
           </div>
         </div>
