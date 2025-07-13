@@ -11,7 +11,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState('jobseeker');
-  const [company, setCompany] = useState({ name: '', website: '', industry: '', country: 'India' });
+  const [company, setCompany] = useState({ name: '', website: '', industry: '' });
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const { mode, isDarkMode } = useMode();
@@ -214,23 +214,7 @@ const Register = () => {
                     placeholder="e.g., Technology"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium transition-colors duration-200">
-                    Country
-                  </label>
-                  <select
-                    value={company.country}
-                    onChange={e => setCompany(prev => ({ ...prev, country: e.target.value }))}
-                    className="input"
-                  >
-                    <option value="India">India</option>
-                    <option value="USA">USA</option>
-                    <option value="UK">UK</option>
-                    <option value="Canada">Canada</option>
-                    <option value="Australia">Australia</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
+
               </div>
             )}
 
@@ -259,6 +243,55 @@ const Register = () => {
               {errors.email && (
                 <p className="mt-1 text-sm text-error-600">{errors.email.message}</p>
               )}
+            </div>
+
+            {/* Location fields */}
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className={`block text-sm font-medium transition-colors duration-200 ${
+                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                }`}>
+                  City
+                </label>
+                <input
+                  type="text"
+                  {...register('location.city')}
+                  className="input"
+                  placeholder="City"
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium transition-colors duration-200 ${
+                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                }`}>
+                  State
+                </label>
+                <input
+                  type="text"
+                  {...register('location.state')}
+                  className="input"
+                  placeholder="State"
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium transition-colors duration-200 ${
+                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                }`}>
+                  Country
+                </label>
+                <select
+                  {...register('location.country')}
+                  className="input"
+                >
+                  <option value="">Select Country</option>
+                  <option value="India">India</option>
+                  <option value="USA">USA</option>
+                  <option value="UK">UK</option>
+                  <option value="Canada">Canada</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
             </div>
 
             <div>

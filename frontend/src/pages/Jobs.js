@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Briefcase, DollarSign, Clock, Building, Loader2 } from 'lucide-react';
+import { Search, MapPin, Briefcase, DollarSign, Clock, Building, Loader2, Settings } from 'lucide-react';
 import { jobAPI } from '../utils/api';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -83,7 +83,7 @@ const Jobs = () => {
       jobAPI.getApplicationsForUser()
         .then(res => {
           const apps = res.data.applications || res.data.data || [];
-          setAppliedJobIds(apps.map(app => app._id));
+          setAppliedJobIds(apps.map(app => app.id));
         })
         .catch(() => setAppliedJobIds([]));
     }
@@ -115,7 +115,18 @@ const Jobs = () => {
       {/* Search Header */}
       <div className="border-b bg-white border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-3xl font-bold mb-6 text-gray-900">Find your next job</h1>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">Find your next job</h1>
+            {user && user.role === 'admin' && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+              >
+                <Settings className="h-4 w-4" />
+                Admin Panel
+              </button>
+            )}
+          </div>
           
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 mb-6">

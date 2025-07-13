@@ -7,6 +7,52 @@ const admin = require('../middleware/admin');
 
 const router = express.Router();
 
+// Admin routes (must come before /:id routes)
+// @route   GET /api/jobs/admin
+// @desc    List all jobs (admin only)
+// @access  Admin
+router.get('/admin', auth, admin, async (req, res) => {
+  try {
+    const jobs = await Job.find().populate('employer', 'firstName lastName email company');
+    res.json({ success: true, jobs });
+  } catch (error) {
+    console.error('Admin list jobs error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/jobs/:id/admin
+// @desc    Edit any job (admin only)
+// @access  Admin
+router.put('/:id/admin', auth, admin, async (req, res) => {
+  try {
+    const job = await Job.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+    res.json({ success: true, job });
+  } catch (error) {
+    console.error('Admin edit job error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/jobs/:id/admin
+// @desc    Delete any job (admin only)
+// @access  Admin
+router.delete('/:id/admin', auth, admin, async (req, res) => {
+  try {
+    const job = await Job.findByIdAndDelete(req.params.id);
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+    res.json({ success: true, message: 'Job deleted' });
+  } catch (error) {
+    console.error('Admin delete job error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // @route   GET /api/jobs
 // @desc    Get all jobs with filtering and pagination
 // @access  Public
@@ -152,6 +198,7 @@ router.post('/', auth, [
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.error('Validation errors:', errors.array());
       return res.status(400).json({
         success: false,
         errors: errors.array()
@@ -184,9 +231,12 @@ router.post('/', auth, [
     });
   } catch (error) {
     console.error('Create job error:', error);
+    console.error('Request body:', req.body);
+    console.error('User:', req.user);
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      error: error.message
     });
   }
 });
@@ -355,51 +405,6 @@ router.post('/:id/apply', [
       success: false,
       message: 'Server error'
     });
-  }
-});
-
-// @route   GET /api/jobs/admin
-// @desc    List all jobs (admin only)
-// @access  Admin
-router.get('/admin', auth, admin, async (req, res) => {
-  try {
-    const jobs = await Job.find().populate('employer', 'firstName lastName email company');
-    res.json({ success: true, jobs });
-  } catch (error) {
-    console.error('Admin list jobs error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// @route   PUT /api/jobs/:id/admin
-// @desc    Edit any job (admin only)
-// @access  Admin
-router.put('/:id/admin', auth, admin, async (req, res) => {
-  try {
-    const job = await Job.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!job) {
-      return res.status(404).json({ success: false, message: 'Job not found' });
-    }
-    res.json({ success: true, job });
-  } catch (error) {
-    console.error('Admin edit job error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// @route   DELETE /api/jobs/:id/admin
-// @desc    Delete any job (admin only)
-// @access  Admin
-router.delete('/:id/admin', auth, admin, async (req, res) => {
-  try {
-    const job = await Job.findByIdAndDelete(req.params.id);
-    if (!job) {
-      return res.status(404).json({ success: false, message: 'Job not found' });
-    }
-    res.json({ success: true, message: 'Job deleted' });
-  } catch (error) {
-    console.error('Admin delete job error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

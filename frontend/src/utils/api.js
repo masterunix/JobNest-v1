@@ -60,7 +60,7 @@ export const jobAPI = {
   
   // Apply for job
   applyForJob: (id, data) => api.post(`/jobs/${id}/apply`, data),
-  getApplicationsForUser: () => api.get('/jobs/applications'),
+  getApplicationsForUser: () => api.get('/users/applications'),
 };
 
 // User API functions
@@ -121,6 +121,15 @@ export const campaignAPI = {
 
   // Delete campaign
   deleteCampaign: (id) => api.delete(`/campaigns/${id}`),
+
+  // Upload campaign media
+  uploadCampaignMedia: (id, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/campaigns/${id}/upload-media`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
 };
 
 export default api; 

@@ -126,7 +126,13 @@ const CampaignDetail = () => {
         <div className={`rounded-lg shadow border p-6 mb-8 transition-colors duration-200 ${
           isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         }`}>
-          <img src={campaign.image} alt={campaign.title} className="rounded-lg mb-6 w-full h-64 object-cover" />
+          {campaign.media && campaign.media.length > 0 && campaign.media[0].type === 'image' ? (
+            <img src={campaign.media[0].url} alt={campaign.title} className="rounded-lg mb-6 w-full h-64 object-cover" />
+          ) : (
+            <div className="rounded-lg mb-6 w-full h-64 bg-gray-200 flex items-center justify-center text-gray-400">
+              No Image
+            </div>
+          )}
           <h1 className={`text-3xl font-bold mb-2 transition-colors duration-200 ${
             isDarkMode ? 'text-white' : 'text-gray-900'
           }`}>{campaign.title}</h1>
@@ -155,9 +161,9 @@ const CampaignDetail = () => {
             }`}>
               <span><span className={`font-semibold transition-colors duration-200 ${
                 isDarkMode ? 'text-white' : 'text-primary-700'
-              }`}>₹{campaign.raised.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span> raised</span>
-              <span>Goal: ₹{campaign.goal.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span>
-              <span>Deadline: {campaign.deadline}</span>
+              }`}>₹{campaign.raised.toLocaleString('en-IN')}</span> raised</span>
+              <span>Goal: ₹{campaign.goal.toLocaleString('en-IN')}</span>
+              <span>Deadline: {new Date(campaign.deadline).toLocaleDateString('en-IN')}</span>
             </div>
           </div>
           <button className="btn-primary px-6 py-2 rounded text-white font-semibold mt-4" onClick={openModal}>Contribute</button>

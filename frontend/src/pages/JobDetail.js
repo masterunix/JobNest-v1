@@ -41,7 +41,12 @@ const JobDetail = () => {
           // Check if user has already applied
           const applications = res.data.data.applications;
           if (Array.isArray(applications) && user) {
-            setHasApplied(applications.some(app => app.applicant === user._id || app.applicant === user.id));
+            setHasApplied(applications.some(app => 
+              app.applicant === user._id || 
+              app.applicant === user.id || 
+              (app.applicant && app.applicant._id === user._id) ||
+              (app.applicant && app.applicant.id === user.id)
+            ));
           } else {
             setHasApplied(false);
           }

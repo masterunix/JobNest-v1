@@ -54,11 +54,6 @@ const Navbar = () => {
                   Post Job
                 </Link>
               )}
-              {user?.role === 'admin' && (
-                <Link to="/admin" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 font-medium transition-colors">
-                  Admin Panel
-                </Link>
-              )}
               {user?.role === 'jobseeker' && (
                 <Link to="/jobs" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
                   Jobs
@@ -131,11 +126,6 @@ const Navbar = () => {
                 {user?.role === 'employer' && (
                   <Link to="/post-job" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium py-2 transition-colors">
                     Post Job
-                  </Link>
-                )}
-                {user?.role === 'admin' && (
-                  <Link to="/admin" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 font-medium py-2 transition-colors">
-                    Admin Panel
                   </Link>
                 )}
                 {user?.role === 'jobseeker' && (

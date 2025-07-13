@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { campaignAPI } from '../../utils/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { Settings } from 'lucide-react';
 
 const categories = [
   'All', 'Tech', 'Arts', 'Social Impact', 'Education', 'Health', 'Environment', 'Other'
@@ -16,6 +18,8 @@ const Campaigns = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('latest');
   const [campaigns, setCampaigns] = useState([]);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Load campaigns from backend
   useEffect(() => {
@@ -49,7 +53,18 @@ const Campaigns = () => {
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Explore Campaigns</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Explore Campaigns</h1>
+          {user && user.role === 'admin' && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+            >
+              <Settings className="h-4 w-4" />
+              Admin Panel
+            </button>
+          )}
+        </div>
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-8 items-center">
           <div className="flex gap-2">
@@ -87,8 +102,16 @@ const Campaigns = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {filtered.map(campaign => (
             <div key={campaign._id} className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-4 flex flex-col">
-              <div className="bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 h-40 w-full flex items-center justify-center">
-                <span className="text-gray-500 dark:text-gray-400 text-sm">No Image</span>
+              <div className="bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 h-40 w-full flex items-center justify-center overflow-hidden">
+                {campaign.media && campaign.media.length > 0 && campaign.media[0].type === 'image' ? (
+                  <img 
+                    src={campaign.media[0].url} 
+                    alt={campaign.title} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-gray-500 dark:text-gray-400 text-sm">No Image</span>
+                )}
               </div>
               <h2 className="text-lg font-semibold mb-1 text-gray-900 dark:text-gray-100">{campaign.title}</h2>
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">{campaign.category}</div>
@@ -104,13 +127,13 @@ const Campaigns = () => {
                 </span>
               </div>
               <div className="text-sm mb-2">
-                <span className="font-medium text-primary-700 dark:text-white">₹{campaign.raised.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span> raised of ₹{campaign.goal.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}
+                <span className="font-medium text-primary-700 dark:text-white">₹{campaign.raised.toLocaleString('en-IN')}</span> raised of ₹{campaign.goal.toLocaleString('en-IN')}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                {campaign.contributors} contributors
+                {campaign.contributorsCount || campaign.contributors?.length || 0} contributors
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Deadline: {campaign.deadline}
+                Deadline: {new Date(campaign.deadline).toLocaleDateString('en-IN')}
               </div>
               <Link
                 to={`/campaigns/${campaign._id}`}

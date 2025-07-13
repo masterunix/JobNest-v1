@@ -17,6 +17,52 @@ const razorpay = new Razorpay({
 
 const router = express.Router();
 
+// Admin routes (must come before /:id routes)
+// @route   GET /api/campaigns/admin
+// @desc    List all campaigns (admin only)
+// @access  Admin
+router.get('/admin', auth, admin, async (req, res) => {
+  try {
+    const campaigns = await Campaign.find().populate('owner', 'firstName lastName email');
+    res.json({ success: true, campaigns });
+  } catch (error) {
+    console.error('Admin list campaigns error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/campaigns/:id/admin
+// @desc    Edit any campaign (admin only)
+// @access  Admin
+router.put('/:id/admin', auth, admin, async (req, res) => {
+  try {
+    const campaign = await Campaign.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!campaign) {
+      return res.status(404).json({ success: false, message: 'Campaign not found' });
+    }
+    res.json({ success: true, campaign });
+  } catch (error) {
+    console.error('Admin edit campaign error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/campaigns/:id/admin
+// @desc    Delete any campaign (admin only)
+// @access  Admin
+router.delete('/:id/admin', auth, admin, async (req, res) => {
+  try {
+    const campaign = await Campaign.findByIdAndDelete(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ success: false, message: 'Campaign not found' });
+    }
+    res.json({ success: true, message: 'Campaign deleted' });
+  } catch (error) {
+    console.error('Admin delete campaign error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 const upload = multer({
   dest: path.join(__dirname, '../uploads'),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
@@ -327,51 +373,6 @@ router.post('/:id/upload-media', upload.single('file'), async (req, res) => {
     res.json({ success: true, url, type: fileType });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
-  }
-});
-
-// @route   GET /api/campaigns/admin
-// @desc    List all campaigns (admin only)
-// @access  Admin
-router.get('/admin', auth, admin, async (req, res) => {
-  try {
-    const campaigns = await Campaign.find().populate('owner', 'firstName lastName email');
-    res.json({ success: true, campaigns });
-  } catch (error) {
-    console.error('Admin list campaigns error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// @route   PUT /api/campaigns/:id/admin
-// @desc    Edit any campaign (admin only)
-// @access  Admin
-router.put('/:id/admin', auth, admin, async (req, res) => {
-  try {
-    const campaign = await Campaign.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!campaign) {
-      return res.status(404).json({ success: false, message: 'Campaign not found' });
-    }
-    res.json({ success: true, campaign });
-  } catch (error) {
-    console.error('Admin edit campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// @route   DELETE /api/campaigns/:id/admin
-// @desc    Delete any campaign (admin only)
-// @access  Admin
-router.delete('/:id/admin', auth, admin, async (req, res) => {
-  try {
-    const campaign = await Campaign.findByIdAndDelete(req.params.id);
-    if (!campaign) {
-      return res.status(404).json({ success: false, message: 'Campaign not found' });
-    }
-    res.json({ success: true, message: 'Campaign deleted' });
-  } catch (error) {
-    console.error('Admin delete campaign error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

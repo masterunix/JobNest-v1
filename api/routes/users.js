@@ -139,17 +139,34 @@ router.get('/applications', auth, async (req, res) => {
       'applications.applicant': user._id
     })
     .populate('employer', 'firstName lastName email company')
-    .select('title company applications status createdAt')
+    .select('title company applications status createdAt location salary')
     .lean();
 
-    // Format the response
+    // Format the response for frontend
     const userApplications = applications.map(job => {
       const userApplication = job.applications.find(
         app => app.applicant.toString() === user._id.toString()
       );
       return {
-        ...job,
-        userApplication
+        id: job._id,
+        jobTitle: job.title,
+        company: job.company?.name || 'Company',
+        appliedDate: userApplication?.appliedAt ? new Date(userApplication.appliedAt).toLocaleDateString() : 'N/A',
+        location: job.location?.address?.city && job.location?.address?.state 
+          ? `${job.location.address.city}, ${job.location.address.state}`
+          : job.location?.address?.city 
+          ? job.location.address.city
+          : job.location?.type 
+          ? job.location.type.charAt(0).toUpperCase() + job.location.type.slice(1)
+          : 'Location not specified',
+        salary: job.salary?.min && job.salary?.max 
+          ? `${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()} ${job.salary.currency}/${job.salary.period}`
+          : job.salary?.min 
+          ? `${job.salary.min.toLocaleString()} ${job.salary.currency}/${job.salary.period}`
+          : job.salary?.max 
+          ? `${job.salary.max.toLocaleString()} ${job.salary.currency}/${job.salary.period}`
+          : 'Salary not specified',
+        status: userApplication?.status || 'pending'
       };
     });
 
@@ -160,6 +177,61 @@ router.get('/applications', auth, async (req, res) => {
 
   } catch (error) {
     console.error('Get applications error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   GET /api/users/profile/completion
+// @desc    Get user profile completion percentage
+// @access  Private
+router.get('/profile/completion', auth, async (req, res) => {
+  try {
+    const user = req.user;
+    let completion = 0;
+    let totalFields = 0;
+    let completedFields = 0;
+
+    // Basic profile fields
+    totalFields += 4; // firstName, lastName, email, phone
+    if (user.firstName && user.firstName.trim()) completedFields++;
+    if (user.lastName && user.lastName.trim()) completedFields++;
+    if (user.email && user.email.trim()) completedFields++;
+    if (user.phone && user.phone.trim()) completedFields++;
+
+    // Location fields
+    totalFields += 3; // city, state, country
+    if (user.location?.city && user.location.city.trim()) completedFields++;
+    if (user.location?.state && user.location.state.trim()) completedFields++;
+    if (user.location?.country && user.location.country.trim()) completedFields++;
+
+    // Profile fields (for job seekers)
+    if (user.role === 'jobseeker') {
+      totalFields += 3; // bio, skills, experience
+      if (user.profile?.bio && user.profile.bio.trim()) completedFields++;
+      if (user.profile?.skills && user.profile.skills.length > 0) completedFields++;
+      if (user.profile?.experience) completedFields++;
+    }
+
+    // Company fields (for employers)
+    if (user.role === 'employer') {
+      totalFields += 3; // company name, website, industry
+      if (user.company?.name && user.company.name.trim()) completedFields++;
+      if (user.company?.website && user.company.website.trim()) completedFields++;
+      if (user.company?.industry && user.company.industry.trim()) completedFields++;
+    }
+
+    completion = Math.round((completedFields / totalFields) * 100);
+
+    res.json({
+      success: true,
+      completion
+    });
+
+  } catch (error) {
+    console.error('Get profile completion error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -183,7 +255,7 @@ router.get('/jobs', auth, async (req, res) => {
 
     const Job = require('../models/Job');
     const jobs = await Job.find({ employer: user._id })
-      .populate('applications.applicant', 'firstName lastName email profile')
+      .populate('applications.applicant', 'firstName lastName email phone profile')
       .sort({ createdAt: -1 })
       .lean();
 

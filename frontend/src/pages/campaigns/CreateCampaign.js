@@ -96,6 +96,17 @@ const CreateCampaign = () => {
       // Send to backend
       const response = await campaignAPI.createCampaign(campaignData);
       if (response.data.success) {
+        const campaignId = response.data.data._id;
+        // If media file is selected, upload it
+        if (form.media) {
+          try {
+            await campaignAPI.uploadCampaignMedia(campaignId, form.media);
+          } catch (uploadErr) {
+            alert('Campaign created, but failed to upload image/video.');
+            navigate('/campaigns');
+            return;
+          }
+        }
         alert('Campaign created successfully!');
         navigate('/campaigns');
       } else {

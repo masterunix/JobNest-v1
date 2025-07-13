@@ -35,8 +35,7 @@ const PostJob = () => {
     },
     benefits: [''],
     type: 'full-time',
-    category: 'engineering',
-    contactEmail: '',
+    category: 'technology',
     applicationDeadline: ''
   });
 
@@ -85,10 +84,33 @@ const PostJob = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!jobData.title.trim()) {
+      toast.error('Job title is required');
+      return;
+    }
+    
+    if (!jobData.description.trim()) {
+      toast.error('Job description is required');
+      return;
+    }
+    
     if (!user?.company?.name) {
       toast.error('Your company name is missing. Please complete your profile before posting a job.');
       return;
     }
+    
+    if (!jobData.salary.min || !jobData.salary.max) {
+      toast.error('Please provide both minimum and maximum salary');
+      return;
+    }
+    
+    if (parseInt(jobData.salary.min) > parseInt(jobData.salary.max)) {
+      toast.error('Minimum salary cannot be greater than maximum salary');
+      return;
+    }
+    
     setSubmitting(true);
     
     try {
@@ -103,8 +125,8 @@ const PostJob = () => {
         },
         location: jobData.location,
         salary: {
-          min: parseInt(jobData.salary.min),
-          max: parseInt(jobData.salary.max),
+          min: jobData.salary.min ? parseInt(jobData.salary.min) : 0,
+          max: jobData.salary.max ? parseInt(jobData.salary.max) : 0,
           currency: jobData.salary.currency,
           period: jobData.salary.period
         },
@@ -117,6 +139,7 @@ const PostJob = () => {
         },
       };
 
+      console.log('Sending job data:', formattedJobData);
       const response = await jobAPI.createJob(formattedJobData);
       
       if (response.data.success) {
@@ -127,7 +150,19 @@ const PostJob = () => {
       }
     } catch (error) {
       console.error('Error posting job:', error);
-      toast.error(error.response?.data?.message || 'Failed to post job. Please try again.');
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      if (error.response?.data?.errors) {
+        const errorMessages = error.response.data.errors.map(err => err.msg).join(', ');
+        toast.error(`Validation errors: ${errorMessages}`);
+      } else if (error.response?.status === 403) {
+        toast.error('You must be logged in as an employer to post jobs.');
+      } else if (error.response?.status === 401) {
+        toast.error('Please log in to post a job.');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to post job. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -215,15 +250,15 @@ const PostJob = () => {
                     onChange={(e) => handleInputChange('category', e.target.value)}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
                   >
-                    <option value="engineering">Engineering</option>
-                    <option value="design">Design</option>
-                    <option value="product">Product</option>
+                    <option value="technology">Technology</option>
+                    <option value="healthcare">Healthcare</option>
+                    <option value="finance">Finance</option>
+                    <option value="education">Education</option>
                     <option value="marketing">Marketing</option>
                     <option value="sales">Sales</option>
+                    <option value="design">Design</option>
+                    <option value="engineering">Engineering</option>
                     <option value="operations">Operations</option>
-                    <option value="finance">Finance</option>
-                    <option value="hr">Human Resources</option>
-                    <option value="legal">Legal</option>
                     <option value="other">Other</option>
                   </select>
                 </div>
@@ -273,24 +308,11 @@ const PostJob = () => {
                     <option value="entry">Entry Level</option>
                     <option value="mid">Mid Level</option>
                     <option value="senior">Senior Level</option>
-                    <option value="lead">Lead</option>
                     <option value="executive">Executive</option>
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-700">
-                    Contact Email *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={jobData.contactEmail}
-                    onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                    placeholder="hr@company.com"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300"
-                  />
-                </div>
+
               </div>
 
               {/* Location Address */}

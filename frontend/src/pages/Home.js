@@ -59,7 +59,20 @@ const Home = () => {
             {isAuthenticated ? (
               // Logged in user actions
               <div className="flex flex-col sm:flex-row gap-4 bg-white/80 dark:bg-gray-800/80 shadow rounded-xl p-4">
-                {user?.role === 'employer' ? (
+                {user?.role === 'admin' ? (
+                  // Admin actions
+                  <>
+                    <Link to="/admin" className="btn-primary flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                      <LayoutDashboard className="h-5 w-5" /> Admin Panel
+                    </Link>
+                    <Link to="/jobs" className="btn-secondary flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                      <Briefcase className="h-5 w-5" /> Manage Jobs
+                    </Link>
+                    <Link to="/campaigns" className="btn-accent flex items-center gap-2 px-6 py-3 text-lg font-semibold">
+                      <Compass className="h-5 w-5" /> Manage Campaigns
+                    </Link>
+                  </>
+                ) : user?.role === 'employer' ? (
                   // Employer actions
                   <>
                     <Link to="/post-job" className="btn-primary flex items-center gap-2 px-6 py-3 text-lg font-semibold">

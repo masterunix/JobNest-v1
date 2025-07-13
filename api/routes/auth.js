@@ -33,7 +33,7 @@ router.post('/register', [
       });
     }
 
-    const { firstName, lastName, email, password, role, phone, location } = req.body;
+    const { firstName, lastName, email, password, role, phone, location, company } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -52,7 +52,8 @@ router.post('/register', [
       password,
       role: role || 'jobseeker',
       phone,
-      location
+      location,
+      company
     });
 
     await user.save();
@@ -70,7 +71,8 @@ router.post('/register', [
         lastName: user.lastName,
         email: user.email,
         role: user.role,
-        fullName: user.fullName
+        fullName: user.fullName,
+        company: user.company
       }
     });
 
@@ -146,7 +148,8 @@ router.post('/login', [
         email: user.email,
         role: user.role,
         fullName: user.fullName,
-        isVerified: user.isVerified
+        isVerified: user.isVerified,
+        company: user.company
       }
     });
 

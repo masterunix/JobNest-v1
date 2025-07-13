@@ -5,8 +5,8 @@ import axios from 'axios';
 
 const API = {
   users: '/api/users',
-  jobs: '/api/jobs/admin',
-  campaigns: '/api/campaigns/admin',
+  jobs: '/api/jobs',
+  campaigns: '/api/campaigns',
 };
 
 const AdminPanel = () => {
@@ -24,7 +24,11 @@ const AdminPanel = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get(API[type], {
+      let url = API[type];
+      if (type !== 'users') {
+        url += '/admin';
+      }
+      const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setData((prev) => ({ ...prev, [type]: res.data[type] || res.data.data || [] }));
@@ -54,8 +58,12 @@ const AdminPanel = () => {
     setLoading(true);
     setError('');
     try {
-      let url = API[editType] + '/' + editItem._id;
-      if (editType !== 'users') url += '/admin';
+      let url;
+      if (editType === 'users') {
+        url = API[editType] + '/' + editItem._id;
+      } else {
+        url = API[editType] + '/' + editItem._id + '/admin';
+      }
       await axios.put(url, editForm, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -73,8 +81,12 @@ const AdminPanel = () => {
     setLoading(true);
     setError('');
     try {
-      let url = API[type] + '/' + item._id;
-      if (type !== 'users') url += '/admin';
+      let url;
+      if (type === 'users') {
+        url = API[type] + '/' + item._id;
+      } else {
+        url = API[type] + '/' + item._id + '/admin';
+      }
       await axios.delete(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
