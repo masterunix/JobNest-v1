@@ -12,15 +12,50 @@ import {
   User
 } from 'lucide-react';
 
+// Replace old companyLogos array with new SVGs
 const companyLogos = [
-  '/assets/companies/peloton.svg',
-  '/assets/companies/roblox.svg',
-  '/assets/companies/airtable.svg',
-  '/assets/companies/postmates.svg',
-  '/assets/companies/doordash.svg',
-  '/assets/companies/nerdwallet.svg',
-  '/assets/companies/plaid.svg',
-  '/assets/companies/ifttt.svg',
+  '/assets/company-logos/apple-logo-svgrepo-com.svg',
+  '/assets/company-logos/apple-black-logo-svgrepo-com.svg',
+  '/assets/company-logos/bmw-logo-svgrepo-com.svg',
+  '/assets/company-logos/coca-cola-logo-svgrepo-com.svg',
+  '/assets/company-logos/facebook-icon-logo-svgrepo-com.svg',
+  '/assets/company-logos/facebook-messenger-3-logo-svgrepo-com.svg',
+  '/assets/company-logos/forbes-logo-svgrepo-com.svg',
+  '/assets/company-logos/google-icon-logo-svgrepo-com.svg',
+  '/assets/company-logos/heineken-14-logo-svgrepo-com.svg',
+  '/assets/company-logos/instagram-logo-svgrepo-com.svg',
+  '/assets/company-logos/kakaotalk-logo-svgrepo-com.svg',
+  '/assets/company-logos/kik-logo-svgrepo-com.svg',
+  '/assets/company-logos/linkedin-logo-svgrepo-com.svg',
+  '/assets/company-logos/mcdonald-s-15-logo-svgrepo-com.svg',
+  '/assets/company-logos/microsoft-logo-svgrepo-com.svg',
+  '/assets/company-logos/netflix-2-logo-svgrepo-com.svg',
+  '/assets/company-logos/nike-3-logo-svgrepo-com.svg',
+  '/assets/company-logos/snapchat-logo-svgrepo-com.svg',
+  '/assets/company-logos/soundcloud-logo-svgrepo-com.svg',
+  '/assets/company-logos/spotify-1-logo-svgrepo-com.svg',
+  '/assets/company-logos/tiktok-icon-white-1-logo-svgrepo-com.svg',
+  '/assets/company-logos/twitter-3-logo-svgrepo-com.svg',
+  '/assets/company-logos/ups-logo-svgrepo-com.svg',
+];
+
+const faqs = [
+  {
+    q: 'Is JobNest free to use?',
+    a: 'Yes! Job seekers can browse and apply for jobs for free. Employers can post jobs with a free plan and upgrade for more features.'
+  },
+  {
+    q: 'How do I apply for a job?',
+    a: 'Sign up, complete your profile, and click "Apply" on any job listing. No cover letter required!'
+  },
+  {
+    q: 'Can I post jobs as a startup?',
+    a: 'Absolutely! We welcome startups and established companies alike.'
+  },
+  {
+    q: 'How do I contact support?',
+    a: 'Use the contact form at the bottom of the page or email us at support@jobnest.com.'
+  },
 ];
 
 const Home = () => {
@@ -159,11 +194,7 @@ const Home = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={
-                    isAuthenticated && user?.role === 'employer'
-                      ? "Search candidates, skills, experience..."
-                      : "Search jobs, companies, skills..."
-                  }
+                  placeholder="Search for jobs..."
                   className="input w-full py-3 px-4 pl-10 text-lg border-2 border-primary-200 dark:border-primary-700 focus:border-primary-500 dark:focus:border-primary-400 rounded-lg shadow-sm"
                 />
                 <button
@@ -179,10 +210,24 @@ const Home = () => {
       </section>
       {/* Company Logos */}
       <section className="py-8 bg-white dark:bg-gray-900">
-        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-8">
-          {companyLogos.map((src, i) => (
-            <img key={i} src={src} alt="Company logo" className="h-10 grayscale opacity-80 hover:opacity-100 transition" />
-          ))}
+        <div className="overflow-x-hidden">
+          <div className="relative w-full">
+            <div
+              className="flex items-center gap-12 animate-marquee whitespace-nowrap"
+              style={{ animation: 'marquee 40s linear infinite' }}
+            >
+              {companyLogos.concat(companyLogos).map((src, i) => (
+                <img
+                  key={i}
+                  src={src}
+                  alt="Company logo"
+                  className="h-20 hover:opacity-100 transition inline-block"
+                  draggable="false"
+                  style={{ userSelect: 'none' }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </section>
       {/* Why Job Seekers Love Us - Only show for job seekers or non-authenticated users */}
@@ -260,8 +305,67 @@ const Home = () => {
           </div>
         </div>
       </section>
+      {/* How It Works Section */}
+      <section className="py-16 bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900 dark:to-secondary-900">
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-10 text-primary-700 dark:text-white">How It Works</h2>
+          <div className="grid md:grid-cols-4 gap-8">
+            {[
+              { icon: '📝', title: 'Sign Up', desc: 'Create your free account in seconds.' },
+              { icon: '🔍', title: 'Browse', desc: 'Explore jobs or candidates tailored to you.' },
+              { icon: '⚡', title: 'Apply/Connect', desc: 'One-click apply or direct message.' },
+              { icon: '🎉', title: 'Get Hired', desc: 'Land your dream job or hire top talent.' },
+            ].map((step, i) => (
+              <div
+                key={i}
+                className="card p-6 text-center transform transition duration-500 hover:-translate-y-2 hover:scale-105 shadow-lg bg-white/80 dark:bg-gray-800/80"
+                style={{ animation: `fadeInUp 0.5s ${i * 0.15 + 0.2}s both` }}
+              >
+                <div className="text-5xl mb-4 animate-bounce-slow">{step.icon}</div>
+                <div className="font-semibold mb-2 text-lg">{step.title}</div>
+                <div className="text-gray-500 dark:text-gray-400">{step.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-16 bg-gradient-to-br from-secondary-50 to-primary-50 dark:from-secondary-900 dark:to-primary-900">
+        <div className="max-w-3xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-10 text-primary-700 dark:text-white">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            {faqs.map((faq, i) => (
+              <FAQItem key={i} faq={faq} />
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
+
+// FAQItem component
+function FAQItem({ faq }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-lg shadow bg-white/80 dark:bg-gray-800/80 transition-all duration-300">
+      <button
+        className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium focus:outline-none"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        <span>{faq.q}</span>
+        <span className={`ml-4 transform transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>▼</span>
+      </button>
+      <div
+        className={`px-6 pb-4 text-gray-600 dark:text-gray-300 transition-all duration-300 overflow-hidden ${open ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}
+        style={{ willChange: 'max-height, opacity' }}
+      >
+        {faq.a}
+      </div>
+    </div>
+  );
+}
 
 export default Home; 

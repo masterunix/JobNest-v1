@@ -1,11 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Github, Twitter, Linkedin } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import toast from 'react-hot-toast';
 
 const Footer = () => {
-  const { user } = useAuth();
   return (
     <footer className="bg-gray-900 dark:bg-gray-950 text-white transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -66,16 +63,7 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">For Companies</h3>
             <ul className="space-y-2">
               <li>
-                <Link
-                  to="/post-job"
-                  className="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-300 transition-colors"
-                  onClick={e => {
-                    if (user && user.role === 'jobseeker') {
-                      e.preventDefault();
-                      toast.error('Only companies/employers can post jobs.');
-                    }
-                  }}
-                >
+                <Link to="/post-job" className="text-gray-300 dark:text-gray-400 hover:text-white dark:hover:text-gray-300 transition-colors">
                   Post a Job
                 </Link>
               </li>
@@ -96,6 +84,19 @@ const Footer = () => {
               </li>
             </ul>
           </div>
+        </div>
+
+        {/* Feedback/Testimonies Link */}
+        <div className="flex justify-center mt-8">
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdpRTNkcubaqAYAQg0jhBFceO-degC_hDtMV04c7BqppsgNwg/viewform?usp=header"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-primary-300 hover:text-primary-100 underline transition-colors duration-200 opacity-80 hover:opacity-100"
+            style={{ letterSpacing: '0.01em' }}
+          >
+            💬 Share Feedback & Testimony
+          </a>
         </div>
 
         {/* Bottom Bar */}

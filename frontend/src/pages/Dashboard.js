@@ -15,16 +15,18 @@ import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [employerJobs, setEmployerJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [applications, setApplications] = useState([]);
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [profileViews, setProfileViews] = useState(0);
-  const [responseRate, setResponseRate] = useState(0);
-  const navigate = useNavigate();
-  const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showApplicantModal, setShowApplicantModal] = useState(false);
+  // Add state for selected application (not just applicant)
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [selectedApplicant] = useState(null);
 
   const isJobSeeker = user?.role === 'jobseeker';
 
@@ -36,15 +38,13 @@ const Dashboard = () => {
           const jobs = res.data.jobs || res.data.data || [];
           setEmployerJobs(jobs);
           // Calculate response rate based on applications received
-          const totalApplications = jobs.reduce((sum, job) => sum + (job.applicationsCount || (job.applications ? job.applications.length : 0)), 0);
-          const activeJobs = jobs.filter(job => job.status === 'active').length;
-          const rate = activeJobs > 0 ? Math.round((totalApplications / activeJobs) * 100) : 0;
-          setResponseRate(rate);
+          // Removed unused 'rate' variable
 
           // Aggregate all applications from all jobs
           const allApplications = jobs.flatMap(job =>
             (job.applications || []).map(app => ({
-              id: app._id,
+              applicationId: app._id, // <-- add this line
+              jobId: job._id, // Add jobId for status updates
               jobTitle: job.title,
               company: job.company?.name || 'Company',
               applicant: app.applicant,
@@ -71,7 +71,6 @@ const Dashboard = () => {
         .catch(() => {
           setEmployerJobs([]);
           setApplications([]);
-          setResponseRate(0);
         })
         .finally(() => setLoadingJobs(false));
     }
@@ -98,10 +97,33 @@ const Dashboard = () => {
     }
   }, [user]);
 
+  // Move handlers inside component for access to setApplications
+  const handleUpdateApplicationStatus = async (item, status) => {
+    try {
+      await userAPI.updateApplicationStatus(item.jobId || item.id, item.applicationId, status);
+      setApplications(applications => applications.map(app =>
+        app.applicationId === item.applicationId ? { ...app, status } : app
+      ));
+    } catch (err) {
+      alert('Failed to update application status');
+    }
+  };
+
+  const handleDeleteApplication = async (item) => {
+    if (!window.confirm('Are you sure you want to delete this application?')) return;
+    try {
+      // You may need to implement a backend endpoint for this
+      // await userAPI.deleteApplication(item.jobId || item.id, item.applicationId);
+      setApplications(applications => applications.filter(app => app.applicationId !== item.applicationId));
+    } catch (err) {
+      alert('Failed to delete application');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-200">
       {/* Applicant Details Modal */}
-      {showApplicantModal && selectedApplicant && (
+      {showApplicantModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8 max-w-md w-full relative">
             <button
@@ -111,18 +133,18 @@ const Dashboard = () => {
               ×
             </button>
             <h2 className="text-xl font-bold mb-2">Applicant Details</h2>
-            <div className="mb-2"><span className="font-semibold">Name:</span> {selectedApplicant.firstName} {selectedApplicant.lastName}</div>
-            <div className="mb-2"><span className="font-semibold">Email:</span> {selectedApplicant.email}</div>
-            {selectedApplicant.phone && (
-              <div className="mb-2"><span className="font-semibold">Contact Number:</span> {selectedApplicant.phone}</div>
+            <div className="mb-2"><span className="font-semibold">Name:</span> {selectedApplicant?.firstName} {selectedApplicant?.lastName}</div>
+            <div className="mb-2"><span className="font-semibold">Email:</span> {selectedApplicant?.email}</div>
+            {selectedApplicant?.phone && (
+              <div className="mb-2"><span className="font-semibold">Contact Number:</span> {selectedApplicant?.phone}</div>
             )}
             {/* Address */}
-            {selectedApplicant.location && (
+            {selectedApplicant?.location && (
               <div className="mb-2">
                 <span className="font-semibold">Address:</span> {selectedApplicant.location.city || ''}{selectedApplicant.location.city && selectedApplicant.location.state ? ', ' : ''}{selectedApplicant.location.state || ''}{(selectedApplicant.location.city || selectedApplicant.location.state) && selectedApplicant.location.country ? ', ' : ''}{selectedApplicant.location.country || ''}
               </div>
             )}
-            {selectedApplicant.profile && (
+            {selectedApplicant?.profile && (
               <>
                 {selectedApplicant.profile.bio && (
                   <div className="mb-2"><span className="font-semibold">Bio:</span> {selectedApplicant.profile.bio}</div>
@@ -161,6 +183,40 @@ const Dashboard = () => {
                 })}
               </>
             )}
+          </div>
+        </div>
+      )}
+      {/* Application Details Modal */}
+      {showApplicationModal && selectedApplication && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8 max-w-md w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+              onClick={() => setShowApplicationModal(false)}
+            >
+              ×
+            </button>
+            <h2 className="text-xl font-bold mb-2">Application Details</h2>
+            <div className="mb-2"><span className="font-semibold">Job:</span> {selectedApplication.jobTitle}</div>
+            <div className="mb-2"><span className="font-semibold">Applicant:</span> {selectedApplication.applicant?.firstName} {selectedApplication.applicant?.lastName}</div>
+            <div className="mb-2"><span className="font-semibold">Email:</span> {selectedApplication.applicant?.email}</div>
+            {selectedApplication.applicant?.phone && (
+              <div className="mb-2"><span className="font-semibold">Contact Number:</span> {selectedApplication.applicant.phone}</div>
+            )}
+            {selectedApplication.coverLetter && (
+              <div className="mb-2"><span className="font-semibold">Short Note:</span> {selectedApplication.coverLetter}</div>
+            )}
+            <div className="mb-2"><span className="font-semibold">Status:</span> {selectedApplication.status}</div>
+            {selectedApplication.resume && (
+              <div className="mb-2"><span className="font-semibold">Resume:</span> <a href={selectedApplication.resume} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View Resume</a></div>
+            )}
+            {/* Add more details as needed */}
+            <div className="flex gap-2 mt-4">
+              <button className="btn-success px-4 py-2 text-xs" onClick={() => handleUpdateApplicationStatus(selectedApplication, 'shortlisted')}>Accept</button>
+              <button className="btn-danger px-4 py-2 text-xs" onClick={() => handleUpdateApplicationStatus(selectedApplication, 'rejected')}>Reject</button>
+              <button className="btn-secondary px-4 py-2 text-xs" onClick={() => handleDeleteApplication(selectedApplication)}>Delete</button>
+              <button className="btn-secondary px-4 py-2 text-xs" onClick={() => setShowApplicationModal(false)}>Close</button>
+            </div>
           </div>
         </div>
       )}
@@ -213,9 +269,9 @@ const Dashboard = () => {
         </div>
 
         {/* Content */}
-        {activeTab === 'overview' && (
+        {activeTab === 'overview' && isJobSeeker && (
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            {/* Stats Cards */}
+            {/* Applications Stat */}
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-primary-100 dark:bg-primary-900 rounded-lg">
@@ -223,15 +279,15 @@ const Dashboard = () => {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {isJobSeeker ? 'Applications' : 'Active Jobs'}
+                    Applications
                   </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {applications.length}
+                    {Array.isArray(applications) ? applications.length : 0}
                   </p>
                 </div>
               </div>
             </div>
-
+            {/* Estimated Profile Views Stat */}
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-secondary-100 dark:bg-secondary-900 rounded-lg">
@@ -239,15 +295,15 @@ const Dashboard = () => {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {isJobSeeker ? 'Profile Views' : 'Total Views'}
+                    Estimated Profile Views
                   </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {isJobSeeker ? profileViews : responseRate}
+                    {typeof profileViews === 'number' ? profileViews : 0}
                   </p>
                 </div>
               </div>
             </div>
-
+            {/* Profile Completion Stat */}
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-accent-100 dark:bg-accent-900 rounded-lg">
@@ -255,10 +311,10 @@ const Dashboard = () => {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {isJobSeeker ? 'Profile Completion' : 'Response Rate'}
+                    Profile Completion
                   </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {profileCompletion}%
+                    {typeof profileCompletion === 'number' ? profileCompletion : 0}%
                   </p>
                 </div>
               </div>
@@ -290,11 +346,15 @@ const Dashboard = () => {
                 </div>
               ) : (
                 applications.map((item) => (
-                  <div key={item.id} className="px-6 py-4">
+                  <div key={item.id + (item.applicationId || '')} className="px-6 py-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium text-gray-900 dark:text-gray-100">{item.jobTitle}</h4>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{item.company}</p>
+                        {/* Show short note (cover letter) */}
+                        {item.coverLetter && (
+                          <div className="text-xs text-gray-500 dark:text-gray-300 mt-1"><span className="font-semibold">Short Note:</span> {item.coverLetter}</div>
+                        )}
                         {/* Applicant details for employers */}
                         {user && user.role === 'employer' && item.applicant && (
                           <div className="mt-1 text-sm text-gray-700 dark:text-gray-300">
@@ -309,7 +369,7 @@ const Dashboard = () => {
                             <br />
                             <button
                               className="btn-secondary mt-2 px-3 py-1 text-xs"
-                              onClick={() => { setSelectedApplicant(item.applicant); setShowApplicantModal(true); }}
+                              onClick={() => { setSelectedApplication(item); setShowApplicationModal(true); }}
                             >
                               View Details
                             </button>
@@ -334,7 +394,7 @@ const Dashboard = () => {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col items-end space-y-2">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           item.status === 'pending' || item.status === 'Applied' || item.status === 'New'
                             ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
@@ -346,6 +406,14 @@ const Dashboard = () => {
                         }`}>
                           {item.status}
                         </span>
+                        {/* Accept/Reject/Delete buttons for employer */}
+                        {user && user.role === 'employer' && (
+                          <div className="flex gap-1 mt-2">
+                            <button className="btn-success px-2 py-1 text-xs" onClick={() => handleUpdateApplicationStatus(item, 'shortlisted')}>Accept</button>
+                            <button className="btn-danger px-2 py-1 text-xs" onClick={() => handleUpdateApplicationStatus(item, 'rejected')}>Reject</button>
+                            <button className="btn-secondary px-2 py-1 text-xs" onClick={() => handleDeleteApplication(item)}>Delete</button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -403,10 +471,6 @@ const Dashboard = () => {
                         <button className="btn-primary px-4 py-2 text-sm"
                           onClick={() => navigate(`/jobs/edit/${job._id}`)}>
                            Manage
-                        </button>
-                        <button className="btn-secondary px-4 py-2 text-sm"
-                          onClick={() => navigate(`/jobs/${job._id}/applications`)}>
-                           Applications
                         </button>
                       </div>
                     </div>

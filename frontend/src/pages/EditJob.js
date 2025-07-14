@@ -16,7 +16,14 @@ const EditJob = () => {
       try {
         const res = await jobAPI.getJob(id);
         if (res.data.success) {
-          setJobData(res.data.data);
+          const job = res.data.data;
+          setJobData({
+            ...job,
+            salary: job.salary || { min: '', max: '', currency: '', period: '' },
+            location: job.location || { city: '', state: '', country: '' },
+            requirements: job.requirements || { skills: [], experience: '', education: '' },
+            company: job.company || { name: '' }
+          });
         } else {
           toast.error('Job not found');
           navigate('/dashboard');

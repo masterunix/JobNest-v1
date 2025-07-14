@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
-import { useSocket } from '../contexts/SocketContext';
-import toast from 'react-hot-toast';
 
 const API = {
   users: '/api/users',
@@ -13,18 +11,6 @@ const API = {
 
 const AdminPanel = () => {
   const { user, token } = useAuth();
-  const socket = useSocket();
-  // Listen for notifications
-  React.useEffect(() => {
-    if (!socket) return;
-    const handler = (data) => {
-      toast(data.message || 'You have a new notification!', { icon: '🔔' });
-    };
-    socket.on('notification', handler);
-    return () => {
-      socket.off('notification', handler);
-    };
-  }, [socket]);
   const [activeTab, setActiveTab] = useState('users');
   const [data, setData] = useState({ users: [], jobs: [], campaigns: [] });
   const [loading, setLoading] = useState(false);
@@ -60,9 +46,21 @@ const AdminPanel = () => {
 
   // Edit handlers
   const handleEdit = (item, type) => {
-    setEditItem(item);
-    setEditType(type);
-    setEditForm(item);
+    if (type === 'jobs') {
+      setEditItem(item);
+      setEditType(type);
+      setEditForm({
+        ...item,
+        company: item.company || { name: '' },
+        requirements: item.requirements || { skills: [], experience: '', education: '' },
+        location: item.location || { city: '', state: '', country: '' },
+        salary: item.salary || { min: '', max: '', currency: '', period: '' }
+      });
+    } else {
+      setEditItem(item);
+      setEditType(type);
+      setEditForm(item);
+    }
   };
   const handleEditChange = (e) => {
     const { name, value } = e.target;
@@ -73,12 +71,23 @@ const AdminPanel = () => {
     setError('');
     try {
       let url;
+      let formToSave = editForm;
+      if (editType === 'jobs' && editForm.salary) {
+        formToSave = {
+          ...editForm,
+          salary: {
+            ...editForm.salary,
+            min: editForm.salary.min !== '' ? Number(editForm.salary.min) : '',
+            max: editForm.salary.max !== '' ? Number(editForm.salary.max) : ''
+          }
+        };
+      }
       if (editType === 'users') {
         url = API[editType] + '/' + editItem._id;
       } else {
         url = API[editType] + '/' + editItem._id + '/admin';
       }
-      await axios.put(url, editForm, {
+      await axios.put(url, formToSave, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEditItem(null);
@@ -243,35 +252,35 @@ const AdminPanel = () => {
                 ×
               </button>
               <div className="overflow-y-auto p-6 flex-1">
-                <h3 className="text-lg font-bold mb-4">Edit {editType.slice(0, -1).toUpperCase()}</h3>
+              <h3 className="text-lg font-bold mb-4">Edit {editType.slice(0, -1).toUpperCase()}</h3>
                 <form id="admin-edit-form" onSubmit={e => { e.preventDefault(); handleEditSave(); }}>
-                  {editType === 'users'
-                    ? ['firstName', 'lastName', 'email', 'role'].map((key) => (
-                        <div className="mb-2" key={key}>
-                          <label className="block text-sm font-medium mb-1">{key}</label>
-                          {key === 'role' ? (
-                            <select
-                              className="w-full border px-2 py-1 rounded"
-                              name="role"
-                              value={editForm.role ?? ''}
-                              onChange={handleEditChange}
-                            >
-                              <option value="admin">admin</option>
-                              <option value="employer">employer</option>
-                              <option value="jobseeker">jobseeker</option>
-                              <option value="owner">owner</option>
-                              <option value="backer">backer</option>
-                            </select>
-                          ) : (
-                            <input
-                              className="w-full border px-2 py-1 rounded"
-                              name={key}
-                              value={editForm[key] ?? ''}
-                              onChange={handleEditChange}
-                            />
-                          )}
-                        </div>
-                      ))
+                {editType === 'users'
+                  ? ['firstName', 'lastName', 'email', 'role'].map((key) => (
+                      <div className="mb-2" key={key}>
+                        <label className="block text-sm font-medium mb-1">{key}</label>
+                        {key === 'role' ? (
+                          <select
+                            className="w-full border px-2 py-1 rounded"
+                            name="role"
+                            value={editForm.role ?? ''}
+                            onChange={handleEditChange}
+                          >
+                            <option value="admin">admin</option>
+                            <option value="employer">employer</option>
+                            <option value="jobseeker">jobseeker</option>
+                            <option value="owner">owner</option>
+                            <option value="backer">backer</option>
+                          </select>
+                        ) : (
+                          <input
+                            className="w-full border px-2 py-1 rounded"
+                            name={key}
+                            value={editForm[key] ?? ''}
+                            onChange={handleEditChange}
+                          />
+                        )}
+                      </div>
+                    ))
                     : Object.keys(editForm).map((key) => {
                         if (key === '_id') return null;
                         // Custom rendering for known object fields
@@ -383,24 +392,24 @@ const AdminPanel = () => {
                         }
                         // Default: simple input
                         return (
-                          <div className="mb-2" key={key}>
-                            <label className="block text-sm font-medium mb-1">{key}</label>
-                            <input
-                              className="w-full border px-2 py-1 rounded"
-                              name={key}
-                              value={editForm[key] ?? ''}
-                              onChange={handleEditChange}
-                            />
-                          </div>
+                        <div className="mb-2" key={key}>
+                          <label className="block text-sm font-medium mb-1">{key}</label>
+                          <input
+                            className="w-full border px-2 py-1 rounded"
+                            name={key}
+                            value={editForm[key] ?? ''}
+                            onChange={handleEditChange}
+                          />
+                        </div>
                         );
                       })}
                 </form>
               </div>
               {/* Sticky footer for buttons */}
               <div className="flex justify-end space-x-2 p-4 border-t bg-white sticky bottom-0 z-10">
-                <button type="button" className="px-4 py-2 bg-gray-300 rounded" onClick={() => setEditItem(null)}>Cancel</button>
+                  <button type="button" className="px-4 py-2 bg-gray-300 rounded" onClick={() => setEditItem(null)}>Cancel</button>
                 <button type="submit" form="admin-edit-form" className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
-              </div>
+                </div>
             </div>
           </div>
         )}

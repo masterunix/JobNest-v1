@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Plus,
   X,
@@ -43,13 +43,6 @@ const PostJob = () => {
   const [submitting, setSubmitting] = useState(false);
   const totalSteps = 3;
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user && user.role === 'jobseeker') {
-      toast.error('Only companies/employers can post jobs.');
-      navigate('/');
-    }
-  }, [user, navigate]);
 
   const handleInputChange = (field, value) => {
     setJobData(prev => ({
@@ -188,12 +181,12 @@ const PostJob = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background-light dark:bg-background-dark">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-gray-900">Post a Job</h1>
-          <p className="text-gray-600">Create a new job listing to attract top talent</p>
+          <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">Post a Job</h1>
+          <p className="text-gray-600 dark:text-gray-400">Create a new job listing to attract top talent</p>
         </div>
 
         {/* Progress Bar */}

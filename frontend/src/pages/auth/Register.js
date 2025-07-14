@@ -69,7 +69,7 @@ const Register = () => {
             Or{' '}
             <Link
               to="/login"
-              className="font-medium text-primary-600 hover:text-primary-500"
+              className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300"
             >
               sign in to your existing account
             </Link>
@@ -80,9 +80,11 @@ const Register = () => {
         <div className={`p-4 rounded-lg border transition-colors duration-200 ${
           isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         }`}>
-          <label className={`block text-sm font-medium mb-3 transition-colors duration-200 ${
-            isDarkMode ? 'text-gray-200' : 'text-gray-700'
-          }`}>
+          <label
+            className={`block text-sm font-medium mb-3 transition-colors duration-200 ${
+              isDarkMode ? 'text-gray-200' : 'text-gray-700'
+            }`}
+          >
             I am a:
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -281,7 +283,7 @@ const Register = () => {
                 </label>
                 <select
                   {...register('location.country')}
-                  className="input"
+                  className="input bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
                 >
                   <option value="">Select Country</option>
                   <option value="India">India</option>
@@ -387,7 +389,7 @@ const Register = () => {
               name="agree-terms"
               type="checkbox"
               required
-              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded dark:bg-gray-800 dark:border-gray-600 dark:checked:bg-primary-600"
             />
             <label htmlFor="agree-terms" className={`ml-2 block text-sm transition-colors duration-200 ${
               isDarkMode ? 'text-gray-200' : 'text-gray-900'
@@ -395,14 +397,14 @@ const Register = () => {
               I agree to the{' '}
               <Link
                 to="/terms"
-                className="font-medium text-primary-600 hover:text-primary-500"
+                className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
               >
                 Terms of Service
               </Link>{' '}
               and{' '}
               <Link
                 to="/privacy"
-                className="font-medium text-primary-600 hover:text-primary-500"
+                className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
               >
                 Privacy Policy
               </Link>

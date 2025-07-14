@@ -1,40 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, User, LogOut, Sun, Moon, Bell } from 'lucide-react';
+import { Menu, X, User, LogOut, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
-import { useSocket } from '../../contexts/SocketContext';
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const { darkMode, toggleDarkMode } = useMode();
-  const socket = useSocket();
-  const [notifications, setNotifications] = React.useState([]);
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const [unread, setUnread] = React.useState(0);
-
-  // Listen for real-time notifications
-  React.useEffect(() => {
-    if (!socket) return;
-    const handler = (data) => {
-      setNotifications((prev) => [{
-        message: data.message || 'You have a new notification!',
-        timestamp: new Date().toLocaleTimeString(),
-        read: false,
-      }, ...prev]);
-      setUnread((prev) => prev + 1);
-    };
-    socket.on('notification', handler);
-    return () => {
-      socket.off('notification', handler);
-    };
-  }, [socket]);
-
-  // Mark all as read when dropdown opens
-  React.useEffect(() => {
-    if (dropdownOpen) setUnread(0);
-  }, [dropdownOpen]);
 
   return (
     <nav className={`sticky top-0 z-40 border-b border-gray-200 shadow-sm ${darkMode ? 'bg-surface-dark' : 'bg-white'}`}>
@@ -50,40 +23,6 @@ const Navbar = () => {
 
         {/* Auth Links */}
         <div className="hidden md:flex items-center space-x-4">
-          {/* Notification Bell */}
-          {isAuthenticated && (
-            <div className="relative">
-              <button
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 relative"
-                aria-label="Notifications"
-                onClick={() => setDropdownOpen((open) => !open)}
-              >
-                <Bell className="h-5 w-5" />
-                {unread > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">{unread}</span>
-                )}
-              </button>
-              {/* Dropdown */}
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-80 max-w-xs bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-                  <div className="p-4 border-b border-gray-100 dark:border-gray-800 font-semibold text-gray-800 dark:text-gray-100">Notifications</div>
-                  <div className="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
-                    {notifications.length === 0 ? (
-                      <div className="p-4 text-gray-500 dark:text-gray-400 text-sm">No notifications yet.</div>
-                    ) : (
-                      notifications.map((n, i) => (
-                        <div key={i} className={`p-4 text-sm ${n.read ? 'text-gray-500' : 'text-gray-800 dark:text-gray-100'}`}>{n.message}<div className="text-xs text-gray-400 mt-1">{n.timestamp}</div></div>
-                      ))
-                    )}
-                  </div>
-                  <button
-                    className="w-full py-2 text-center text-xs text-blue-600 dark:text-blue-400 hover:underline bg-gray-50 dark:bg-gray-800 rounded-b-lg"
-                    onClick={() => { setNotifications([]); setDropdownOpen(false); }}
-                  >Clear All</button>
-                </div>
-              )}
-            </div>
-          )}
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}

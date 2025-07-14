@@ -40,9 +40,6 @@ router.put('/:id/admin', auth, admin, async (req, res) => {
     if (!campaign) {
       return res.status(404).json({ success: false, message: 'Campaign not found' });
     }
-    // Emit notification
-    const io = req.app.get('io');
-    if (io) io.emit('notification', { message: `Campaign "${campaign.title}" was updated by admin.` });
     res.json({ success: true, campaign });
   } catch (error) {
     console.error('Admin edit campaign error:', error);
@@ -59,9 +56,6 @@ router.delete('/:id/admin', auth, admin, async (req, res) => {
     if (!campaign) {
       return res.status(404).json({ success: false, message: 'Campaign not found' });
     }
-    // Emit notification
-    const io = req.app.get('io');
-    if (io) io.emit('notification', { message: `Campaign "${campaign.title}" was deleted by admin.` });
     res.json({ success: true, message: 'Campaign deleted' });
   } catch (error) {
     console.error('Admin delete campaign error:', error);
@@ -99,9 +93,6 @@ router.post('/', auth, [
     }
     const campaign = new Campaign({ ...req.body, owner: req.user._id });
     await campaign.save();
-    // Emit notification
-    const io = req.app.get('io');
-    if (io) io.emit('notification', { message: `A new campaign "${campaign.title}" was created!` });
     res.status(201).json({ success: true, data: campaign });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });

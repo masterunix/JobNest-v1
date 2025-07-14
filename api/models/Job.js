@@ -137,7 +137,7 @@ const jobSchema = new mongoose.Schema({
 });
 
 // Indexes for better query performance
-jobSchema.index({ title: 'text', description: 'text' });
+jobSchema.index({ title: 'text', description: 'text', 'company.name': 'text' });
 jobSchema.index({ status: 1, createdAt: -1 });
 jobSchema.index({ 'location.type': 1 });
 jobSchema.index({ category: 1 });

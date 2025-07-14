@@ -166,7 +166,11 @@ router.get('/applications', auth, async (req, res) => {
           : job.salary?.max 
           ? `${job.salary.max.toLocaleString()} ${job.salary.currency}/${job.salary.period}`
           : 'Salary not specified',
-        status: userApplication?.status || 'pending'
+        status: userApplication?.status || 'pending',
+        applicationId: userApplication?._id,
+        coverLetter: userApplication?.coverLetter || '',
+        resume: userApplication?.resume || '',
+        notes: userApplication?.notes || '',
       };
     });
 
@@ -330,6 +334,19 @@ router.put('/jobs/:jobId/applications/:applicationId', auth, [
       success: false,
       message: 'Server error'
     });
+  }
+});
+
+// @route   GET /api/users/companies
+// @desc    List all companies (employers)
+// @access  Public
+router.get('/companies', async (req, res) => {
+  try {
+    const companies = await User.find({ role: 'employer', 'company.name': { $exists: true, $ne: '' } })
+      .select('company firstName lastName email location profile');
+    res.json({ success: true, companies });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
