@@ -30,6 +30,9 @@ router.put('/:id/admin', auth, admin, async (req, res) => {
     if (!job) {
       return res.status(404).json({ success: false, message: 'Job not found' });
     }
+    // Emit notification
+    const io = req.app.get('io');
+    if (io) io.emit('notification', { message: `Job "${job.title}" was updated by admin.` });
     res.json({ success: true, job });
   } catch (error) {
     console.error('Admin edit job error:', error);
@@ -46,6 +49,9 @@ router.delete('/:id/admin', auth, admin, async (req, res) => {
     if (!job) {
       return res.status(404).json({ success: false, message: 'Job not found' });
     }
+    // Emit notification
+    const io = req.app.get('io');
+    if (io) io.emit('notification', { message: `Job "${job.title}" was deleted by admin.` });
     res.json({ success: true, message: 'Job deleted' });
   } catch (error) {
     console.error('Admin delete job error:', error);
@@ -221,6 +227,10 @@ router.post('/', auth, [
     const job = new Job(jobData);
     await job.save();
 
+    // Emit notification
+    const io = req.app.get('io');
+    if (io) io.emit('notification', { message: `A new job "${job.title}" was posted!` });
+
     const populatedJob = await Job.findById(job._id)
       .populate('employer', 'firstName lastName email company');
 
@@ -338,33 +348,27 @@ router.post('/:id/apply', [
         errors: errors.array()
       });
     }
-
     const job = await Job.findById(req.params.id);
-    
     if (!job) {
       return res.status(404).json({
         success: false,
         message: 'Job not found'
       });
     }
-
     if (job.status !== 'active') {
       return res.status(400).json({
         success: false,
         message: 'This job is not accepting applications'
       });
     }
-
     // In a real app, get applicant ID from JWT token
     const applicantId = req.headers['user-id'];
-    
     if (!applicantId) {
       return res.status(401).json({
         success: false,
         message: 'Applicant ID is required'
       });
     }
-
     // Verify the user is a job seeker
     const applicant = await User.findById(applicantId);
     if (!applicant || applicant.role !== 'jobseeker') {
@@ -373,34 +377,30 @@ router.post('/:id/apply', [
         message: 'Only job seekers can apply for jobs'
       });
     }
-
     // Check if already applied
     const alreadyApplied = job.applications.some(
       app => app.applicant.toString() === applicantId
     );
-
     if (alreadyApplied) {
       return res.status(400).json({
         success: false,
         message: 'You have already applied for this job'
       });
     }
-
     const applicationData = {
       applicant: applicantId,
       coverLetter: req.body.coverLetter,
-      resume: req.body.resume
     };
-
     await job.addApplication(applicationData);
-
+    // Emit notification
+    const io = req.app.get('io');
+    if (io) io.emit('notification', { message: `${applicant.firstName} ${applicant.lastName} applied for job "${job.title}"!` });
     res.status(201).json({
       success: true,
       message: 'Application submitted successfully'
     });
-
   } catch (error) {
-    console.error('Apply for job error:', error);
+    console.error('Job application error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

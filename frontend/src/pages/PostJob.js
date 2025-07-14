@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus,
   X,
@@ -43,6 +43,13 @@ const PostJob = () => {
   const [submitting, setSubmitting] = useState(false);
   const totalSteps = 3;
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && user.role === 'jobseeker') {
+      toast.error('Only companies/employers can post jobs.');
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleInputChange = (field, value) => {
     setJobData(prev => ({

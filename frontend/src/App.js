@@ -20,87 +20,90 @@ import EditCampaign from './pages/campaigns/EditCampaign';
 import EditJob from './pages/EditJob';
 import { AuthProvider } from './contexts/AuthContext';
 import { ModeProvider } from './contexts/ModeContext';
+import { SocketProvider } from './contexts/SocketContext';
 
 function App() {
   return (
     <ModeProvider>
       <AuthProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50 flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/jobs" element={<Jobs />} />
-                <Route path="/jobs/:id" element={<JobDetail />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } />
-                <Route path="/post-job" element={
-                  <ProtectedRoute allowedRoles={['employer']}>
-                    <PostJob />
-                  </ProtectedRoute>
-                } />
-                <Route path="/campaigns/create" element={
-                  <ProtectedRoute allowedRoles={['employer', 'owner']}>
-                    <CreateCampaign />
-                  </ProtectedRoute>
-                } />
-                <Route path="/campaigns" element={<Campaigns />} />
-                <Route path="/campaigns/:id" element={<CampaignDetail />} />
-                <Route path="/campaigns/edit/:id" element={
-                  <ProtectedRoute allowedRoles={['employer', 'owner']}>
-                    <EditCampaign />
-                  </ProtectedRoute>
-                } />
-                <Route path="/jobs/edit/:id" element={
-                  <ProtectedRoute allowedRoles={['employer']}>
-                    <EditJob />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminPanel />
-                  </ProtectedRoute>
-                } />
-              </Routes>
-            </main>
-            <Footer />
-            <Toaster 
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#363636',
-                  color: '#fff',
-                },
-                success: {
-                  duration: 3000,
-                  iconTheme: {
-                    primary: '#22c55e',
-                    secondary: '#fff',
+        <SocketProvider>
+          <Router>
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+              <Navbar />
+              <main className="flex-grow">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/jobs" element={<Jobs />} />
+                  <Route path="/jobs/:id" element={<JobDetail />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/post-job" element={
+                    <ProtectedRoute allowedRoles={['employer']}>
+                      <PostJob />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/campaigns/create" element={
+                    <ProtectedRoute allowedRoles={['employer', 'owner']}>
+                      <CreateCampaign />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/campaigns" element={<Campaigns />} />
+                  <Route path="/campaigns/:id" element={<CampaignDetail />} />
+                  <Route path="/campaigns/edit/:id" element={
+                    <ProtectedRoute allowedRoles={['employer', 'owner']}>
+                      <EditCampaign />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/jobs/edit/:id" element={
+                    <ProtectedRoute allowedRoles={['employer']}>
+                      <EditJob />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin" element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <AdminPanel />
+                    </ProtectedRoute>
+                  } />
+                </Routes>
+              </main>
+              <Footer />
+              <Toaster 
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: '#363636',
+                    color: '#fff',
                   },
-                },
-                error: {
-                  duration: 5000,
-                  iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
+                  success: {
+                    duration: 3000,
+                    iconTheme: {
+                      primary: '#22c55e',
+                      secondary: '#fff',
+                    },
                   },
-                },
-              }}
-            />
-          </div>
-        </Router>
+                  error: {
+                    duration: 5000,
+                    iconTheme: {
+                      primary: '#ef4444',
+                      secondary: '#fff',
+                    },
+                  },
+                }}
+              />
+            </div>
+          </Router>
+        </SocketProvider>
       </AuthProvider>
     </ModeProvider>
   );

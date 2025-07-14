@@ -23,5 +23,8 @@
   "devDependencies": {
     "concurrently": "^8.2.2",
     "vite": "^7.0.2"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1"
   }
 }

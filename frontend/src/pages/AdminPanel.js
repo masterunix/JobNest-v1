@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
+import { useSocket } from '../contexts/SocketContext';
+import toast from 'react-hot-toast';
 
 const API = {
   users: '/api/users',
@@ -11,6 +13,18 @@ const API = {
 
 const AdminPanel = () => {
   const { user, token } = useAuth();
+  const socket = useSocket();
+  // Listen for notifications
+  React.useEffect(() => {
+    if (!socket) return;
+    const handler = (data) => {
+      toast(data.message || 'You have a new notification!', { icon: '🔔' });
+    };
+    socket.on('notification', handler);
+    return () => {
+      socket.off('notification', handler);
+    };
+  }, [socket]);
   const [activeTab, setActiveTab] = useState('users');
   const [data, setData] = useState({ users: [], jobs: [], campaigns: [] });
   const [loading, setLoading] = useState(false);
@@ -218,54 +232,175 @@ const AdminPanel = () => {
         {/* Edit Modal */}
         {editItem && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded shadow-lg min-w-[300px] max-w-lg w-full">
-              <h3 className="text-lg font-bold mb-4">Edit {editType.slice(0, -1).toUpperCase()}</h3>
-              <form onSubmit={e => { e.preventDefault(); handleEditSave(); }}>
-                {editType === 'users'
-                  ? ['firstName', 'lastName', 'email', 'role'].map((key) => (
-                      <div className="mb-2" key={key}>
-                        <label className="block text-sm font-medium mb-1">{key}</label>
-                        {key === 'role' ? (
-                          <select
-                            className="w-full border px-2 py-1 rounded"
-                            name="role"
-                            value={editForm.role ?? ''}
-                            onChange={handleEditChange}
-                          >
-                            <option value="admin">admin</option>
-                            <option value="employer">employer</option>
-                            <option value="jobseeker">jobseeker</option>
-                            <option value="owner">owner</option>
-                            <option value="backer">backer</option>
-                          </select>
-                        ) : (
-                          <input
-                            className="w-full border px-2 py-1 rounded"
-                            name={key}
-                            value={editForm[key] ?? ''}
-                            onChange={handleEditChange}
-                          />
-                        )}
-                      </div>
-                    ))
-                  : Object.keys(editForm).map((key) => (
-                      key !== '_id' && (
+            <div className="bg-white p-0 rounded shadow-lg min-w-[300px] max-w-lg w-full max-h-[90vh] flex flex-col relative">
+              {/* Close (X) button */}
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold z-10"
+                onClick={() => setEditItem(null)}
+                aria-label="Close"
+                type="button"
+              >
+                ×
+              </button>
+              <div className="overflow-y-auto p-6 flex-1">
+                <h3 className="text-lg font-bold mb-4">Edit {editType.slice(0, -1).toUpperCase()}</h3>
+                <form id="admin-edit-form" onSubmit={e => { e.preventDefault(); handleEditSave(); }}>
+                  {editType === 'users'
+                    ? ['firstName', 'lastName', 'email', 'role'].map((key) => (
                         <div className="mb-2" key={key}>
                           <label className="block text-sm font-medium mb-1">{key}</label>
-                          <input
-                            className="w-full border px-2 py-1 rounded"
-                            name={key}
-                            value={editForm[key] ?? ''}
-                            onChange={handleEditChange}
-                          />
+                          {key === 'role' ? (
+                            <select
+                              className="w-full border px-2 py-1 rounded"
+                              name="role"
+                              value={editForm.role ?? ''}
+                              onChange={handleEditChange}
+                            >
+                              <option value="admin">admin</option>
+                              <option value="employer">employer</option>
+                              <option value="jobseeker">jobseeker</option>
+                              <option value="owner">owner</option>
+                              <option value="backer">backer</option>
+                            </select>
+                          ) : (
+                            <input
+                              className="w-full border px-2 py-1 rounded"
+                              name={key}
+                              value={editForm[key] ?? ''}
+                              onChange={handleEditChange}
+                            />
+                          )}
                         </div>
-                      )
-                    ))}
-                <div className="flex justify-end space-x-2 mt-4">
-                  <button type="button" className="px-4 py-2 bg-gray-300 rounded" onClick={() => setEditItem(null)}>Cancel</button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
-                </div>
-              </form>
+                      ))
+                    : Object.keys(editForm).map((key) => {
+                        if (key === '_id') return null;
+                        // Custom rendering for known object fields
+                        if (key === 'company' && typeof editForm.company === 'object' && editForm.company !== null) {
+                          return (
+                            <div className="mb-2" key={key}>
+                              <label className="block text-sm font-medium mb-1">Company Name</label>
+                              <input
+                                className="w-full border px-2 py-1 rounded"
+                                name="company.name"
+                                value={editForm.company.name ?? ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, company: { ...prev.company, name: e.target.value } }))}
+                              />
+                            </div>
+                          );
+                        }
+                        if (key === 'requirements' && typeof editForm.requirements === 'object' && editForm.requirements !== null) {
+                          return (
+                            <div className="mb-2" key={key}>
+                              <label className="block text-sm font-medium mb-1">Requirements (skills, experience, education)</label>
+                              <textarea
+                                className="w-full border px-2 py-1 rounded"
+                                name="requirements.skills"
+                                value={Array.isArray(editForm.requirements.skills) ? editForm.requirements.skills.join(', ') : (editForm.requirements.skills || '')}
+                                onChange={e => setEditForm(prev => ({ ...prev, requirements: { ...prev.requirements, skills: e.target.value.split(',').map(s => s.trim()) } }))}
+                                placeholder="Comma-separated skills"
+                              />
+                              <input
+                                className="w-full border px-2 py-1 rounded mt-1"
+                                name="requirements.experience"
+                                value={editForm.requirements.experience ?? ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, requirements: { ...prev.requirements, experience: e.target.value } }))}
+                                placeholder="Experience (e.g., mid, senior)"
+                              />
+                              <input
+                                className="w-full border px-2 py-1 rounded mt-1"
+                                name="requirements.education"
+                                value={editForm.requirements.education ?? ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, requirements: { ...prev.requirements, education: e.target.value } }))}
+                                placeholder="Education (e.g., bachelor)"
+                              />
+                            </div>
+                          );
+                        }
+                        if (key === 'location' && typeof editForm.location === 'object' && editForm.location !== null) {
+                          return (
+                            <div className="mb-2" key={key}>
+                              <label className="block text-sm font-medium mb-1">Location</label>
+                              <input
+                                className="w-full border px-2 py-1 rounded mb-1"
+                                name="location.city"
+                                value={editForm.location.city ?? ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, location: { ...prev.location, city: e.target.value } }))}
+                                placeholder="City"
+                              />
+                              <input
+                                className="w-full border px-2 py-1 rounded mb-1"
+                                name="location.state"
+                                value={editForm.location.state ?? ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, location: { ...prev.location, state: e.target.value } }))}
+                                placeholder="State"
+                              />
+                              <input
+                                className="w-full border px-2 py-1 rounded"
+                                name="location.country"
+                                value={editForm.location.country ?? ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, location: { ...prev.location, country: e.target.value } }))}
+                                placeholder="Country"
+                              />
+                            </div>
+                          );
+                        }
+                        if (key === 'salary' && typeof editForm.salary === 'object' && editForm.salary !== null) {
+                          return (
+                            <div className="mb-2" key={key}>
+                              <label className="block text-sm font-medium mb-1">Salary</label>
+                              <input
+                                className="w-full border px-2 py-1 rounded mb-1"
+                                name="salary.min"
+                                type="number"
+                                value={editForm.salary.min ?? ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, salary: { ...prev.salary, min: e.target.value } }))}
+                                placeholder="Minimum Salary"
+                              />
+                              <input
+                                className="w-full border px-2 py-1 rounded mb-1"
+                                name="salary.max"
+                                type="number"
+                                value={editForm.salary.max ?? ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, salary: { ...prev.salary, max: e.target.value } }))}
+                                placeholder="Maximum Salary"
+                              />
+                              <input
+                                className="w-full border px-2 py-1 rounded mb-1"
+                                name="salary.currency"
+                                value={editForm.salary.currency ?? ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, salary: { ...prev.salary, currency: e.target.value } }))}
+                                placeholder="Currency (e.g., USD)"
+                              />
+                              <input
+                                className="w-full border px-2 py-1 rounded"
+                                name="salary.period"
+                                value={editForm.salary.period ?? ''}
+                                onChange={e => setEditForm(prev => ({ ...prev, salary: { ...prev.salary, period: e.target.value } }))}
+                                placeholder="Period (e.g., yearly, monthly)"
+                              />
+                            </div>
+                          );
+                        }
+                        // Default: simple input
+                        return (
+                          <div className="mb-2" key={key}>
+                            <label className="block text-sm font-medium mb-1">{key}</label>
+                            <input
+                              className="w-full border px-2 py-1 rounded"
+                              name={key}
+                              value={editForm[key] ?? ''}
+                              onChange={handleEditChange}
+                            />
+                          </div>
+                        );
+                      })}
+                </form>
+              </div>
+              {/* Sticky footer for buttons */}
+              <div className="flex justify-end space-x-2 p-4 border-t bg-white sticky bottom-0 z-10">
+                <button type="button" className="px-4 py-2 bg-gray-300 rounded" onClick={() => setEditItem(null)}>Cancel</button>
+                <button type="submit" form="admin-edit-form" className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+              </div>
             </div>
           </div>
         )}
