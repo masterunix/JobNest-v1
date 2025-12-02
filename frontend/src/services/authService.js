@@ -4,12 +4,12 @@ import axios from 'axios';
 // But for a service, it's good practice to be explicit or rely on the global axios instance
 
 const register = async (userData) => {
-    const response = await axios.post('/api/auth/register', userData);
+    const response = await axios.post('/auth/register', userData);
     return response.data;
 };
 
 const login = async (userData) => {
-    const response = await axios.post('/api/auth/login', userData);
+    const response = await axios.post('/auth/login', userData);
     return response.data;
 };
 
@@ -19,17 +19,17 @@ const logout = () => {
 };
 
 const getCurrentUser = async () => {
-    const response = await axios.get('/api/auth/me');
+    const response = await axios.get('/auth/me');
     return response.data;
 };
 
 const updateProfile = async (userData) => {
-    const response = await axios.put('/api/users/profile', userData);
+    const response = await axios.put('/users/profile', userData);
     return response.data;
 };
 
 const changePassword = async (passwordData) => {
-    const response = await axios.put('/api/users/password', passwordData);
+    const response = await axios.put('/users/password', passwordData);
     return response.data;
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 export default function Companies() {
   const [search, setSearch] = useState('');
@@ -11,10 +12,9 @@ export default function Companies() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch('/api/users/companies');
-        const data = await res.json();
-        if (data.success) {
-          setCompanies(data.companies);
+        const res = await axios.get('/users/companies');
+        if (res.data?.success) {
+          setCompanies(res.data.companies);
         } else {
           setError('Failed to load companies.');
         }

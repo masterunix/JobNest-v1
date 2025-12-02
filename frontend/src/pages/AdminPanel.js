@@ -4,9 +4,9 @@ import { Navigate } from 'react-router-dom';
 import axios from 'axios';
 
 const API = {
-  users: '/api/users',
-  jobs: '/api/jobs',
-  campaigns: '/api/campaigns',
+  users: '/users',
+  jobs: '/jobs',
+  campaigns: '/campaigns',
 };
 
 const AdminPanel = () => {

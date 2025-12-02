@@ -3,7 +3,7 @@ import axios from 'axios';
 import authService from '../services/authService';
 
 // Set default base URL
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 const AuthContext = createContext();
 
