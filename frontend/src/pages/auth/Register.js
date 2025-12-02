@@ -14,7 +14,7 @@ const Register = () => {
   const [company, setCompany] = useState({ name: '', website: '', industry: '' });
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
-  const { mode, isDarkMode } = useMode();
+  const { mode } = useMode();
 
   const {
     register,
@@ -52,24 +52,20 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+    <div className="min-h-screen flex items-center justify-center bg-background-light py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto h-12 w-12 bg-primary-600 rounded-full flex items-center justify-center">
             <User className="h-6 w-6 text-white" />
           </div>
-          <h2 className={`mt-6 text-center text-3xl font-extrabold transition-colors duration-200 ${
-            isDarkMode ? 'text-white' : 'text-gray-900'
-          }`}>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Create your account
           </h2>
-          <p className={`mt-2 text-center text-sm transition-colors duration-200 ${
-            isDarkMode ? 'text-gray-300' : 'text-gray-600'
-          }`}>
+          <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
             <Link
               to="/login"
-              className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300"
+              className="font-medium text-primary-600 hover:text-primary-500"
             >
               sign in to your existing account
             </Link>
@@ -77,14 +73,8 @@ const Register = () => {
         </div>
 
         {/* Role Selection */}
-        <div className={`p-4 rounded-lg border transition-colors duration-200 ${
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-        }`}>
-          <label
-            className={`block text-sm font-medium mb-3 transition-colors duration-200 ${
-              isDarkMode ? 'text-gray-200' : 'text-gray-700'
-            }`}
-          >
+        <div className="p-4 rounded-lg border bg-white border-gray-200">
+          <label className="block text-sm font-medium mb-3 text-gray-700">
             I am a:
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -94,9 +84,7 @@ const Register = () => {
               className={`p-3 rounded-lg border-2 transition-colors ${
                 role === 'jobseeker'
                   ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : isDarkMode
-                    ? 'border-gray-600 bg-gray-700 text-gray-200 hover:border-gray-500'
-                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
               }`}
             >
               <User className="h-5 w-5 mx-auto mb-1" />
@@ -108,9 +96,7 @@ const Register = () => {
               className={`p-3 rounded-lg border-2 transition-colors ${
                 role === 'employer'
                   ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : isDarkMode
-                    ? 'border-gray-600 bg-gray-700 text-gray-200 hover:border-gray-500'
-                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
               }`}
             >
               <Building className="h-5 w-5 mx-auto mb-1" />
@@ -124,7 +110,7 @@ const Register = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className={`block text-sm font-medium transition-colors duration-200 ${
-                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                  'text-gray-700'
                 }`}>
                   First Name
                 </label>
@@ -151,7 +137,7 @@ const Register = () => {
 
               <div>
                 <label htmlFor="lastName" className={`block text-sm font-medium transition-colors duration-200 ${
-                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                  'text-gray-700'
                 }`}>
                   Last Name
                 </label>
@@ -222,7 +208,7 @@ const Register = () => {
 
             <div>
               <label htmlFor="email" className={`block text-sm font-medium transition-colors duration-200 ${
-                isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                'text-gray-700'
               }`}>
                 Email address
               </label>
@@ -251,7 +237,7 @@ const Register = () => {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className={`block text-sm font-medium transition-colors duration-200 ${
-                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                  'text-gray-700'
                 }`}>
                   City
                 </label>
@@ -264,7 +250,7 @@ const Register = () => {
               </div>
               <div>
                 <label className={`block text-sm font-medium transition-colors duration-200 ${
-                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                  'text-gray-700'
                 }`}>
                   State
                 </label>
@@ -277,7 +263,7 @@ const Register = () => {
               </div>
               <div>
                 <label className={`block text-sm font-medium transition-colors duration-200 ${
-                  isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                  'text-gray-700'
                 }`}>
                   Country
                 </label>
@@ -298,7 +284,7 @@ const Register = () => {
 
             <div>
               <label htmlFor="password" className={`block text-sm font-medium transition-colors duration-200 ${
-                isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                'text-gray-700'
               }`}>
                 Password
               </label>
@@ -326,11 +312,11 @@ const Register = () => {
                 >
                   {showPassword ? (
                     <EyeOff className={`h-5 w-5 transition-colors duration-200 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-400'
+                      'text-gray-400'
                     }`} />
                   ) : (
                     <Eye className={`h-5 w-5 transition-colors duration-200 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-400'
+                      'text-gray-400'
                     }`} />
                   )}
                 </button>
@@ -342,7 +328,7 @@ const Register = () => {
 
             <div>
               <label htmlFor="confirmPassword" className={`block text-sm font-medium transition-colors duration-200 ${
-                isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                'text-gray-700'
               }`}>
                 Confirm Password
               </label>
@@ -368,11 +354,11 @@ const Register = () => {
                 >
                   {showConfirmPassword ? (
                     <EyeOff className={`h-5 w-5 transition-colors duration-200 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-400'
+                      'text-gray-400'
                     }`} />
                   ) : (
                     <Eye className={`h-5 w-5 transition-colors duration-200 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-400'
+                      'text-gray-400'
                     }`} />
                   )}
                 </button>
@@ -392,7 +378,7 @@ const Register = () => {
               className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded dark:bg-gray-800 dark:border-gray-600 dark:checked:bg-primary-600"
             />
             <label htmlFor="agree-terms" className={`ml-2 block text-sm transition-colors duration-200 ${
-              isDarkMode ? 'text-gray-200' : 'text-gray-900'
+              'text-gray-900'
             }`}>
               I agree to the{' '}
               <Link
@@ -433,7 +419,7 @@ const Register = () => {
 
           <div className="text-center">
             <p className={`text-sm transition-colors duration-200 ${
-              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+              'text-gray-600'
             }`}>
               Already have an account?{' '}
               <Link

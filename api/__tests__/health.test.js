@@ -1,4 +1,17 @@
 const request = require('supertest');
+jest.mock('mongoose', () => ({
+  connect: jest.fn().mockResolvedValue({ connection: { host: 'mockHost' } }),
+  Schema: jest.fn(() => ({
+    index: jest.fn(),
+    pre: jest.fn(),
+    methods: {},
+    virtual: jest.fn(() => ({
+      get: jest.fn(),
+      set: jest.fn(),
+    })),
+  })),
+  model: jest.fn(),
+}));
 const app = require('../index');
 
 describe('GET /api/health', () => {

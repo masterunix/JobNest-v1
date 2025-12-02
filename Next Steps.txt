@@ -1,3 +1,0 @@
-adjust gitignore for implementaion.
-.env needs to be understood. 
-Crea

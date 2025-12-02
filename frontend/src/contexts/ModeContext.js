@@ -1,14 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 const ModeContext = createContext();
 
 export const ModeProvider = ({ children }) => {
-  const [mode, setMode] = useState(
-    localStorage.getItem('mode') || 'jobseeker'
-  );
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem('darkMode') === 'true' || 
-    (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const [mode, setMode] = useState(() =>
+    typeof window !== 'undefined' ? (localStorage.getItem('mode') || 'jobseeker') : 'jobseeker'
   );
 
   const updateMode = (newMode) => {
@@ -16,27 +12,10 @@ export const ModeProvider = ({ children }) => {
     localStorage.setItem('mode', newMode);
   };
 
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-  };
-
-  // Apply dark mode class to document
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
   return (
-    <ModeContext.Provider value={{ 
-      mode, 
-      setMode: updateMode, 
-      darkMode, 
-      toggleDarkMode 
+    <ModeContext.Provider value={{
+      mode,
+      setMode: updateMode
     }}>
       {children}
     </ModeContext.Provider>

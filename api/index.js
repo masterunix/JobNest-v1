@@ -14,7 +14,7 @@ app.use(helmet());
 app.use(compression());
 app.use(morgan('combined'));
 app.use(cors({
-  origin: [
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
     'https://jobnest-v1-1.onrender.com',
     'http://localhost:3000'
   ],
@@ -25,19 +25,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // MongoDB Connection
-if (!process.env.VERCEL) {
-  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jobnest', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
-  });
-}
+const connectDB = require('./config/db');
+connectDB();
 
 // Import routes
 const authRoutes = require('./routes/auth');

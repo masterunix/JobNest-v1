@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { useMode } from '../../contexts/ModeContext';
 import { campaignAPI } from '../../utils/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const CampaignDetail = () => {
   const { id } = useParams();
-  const { isDarkMode } = useMode();
   const { user } = useAuth();
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,12 +39,12 @@ const CampaignDetail = () => {
 
   if (loading) {
     return <div className={`max-w-2xl mx-auto py-16 text-center transition-colors duration-200 ${
-      isDarkMode ? 'text-gray-400' : 'text-gray-500'
+      'text-gray-500'
     }`}>Loading campaign...</div>;
   }
   if (notFound || !campaign) {
     return <div className={`max-w-2xl mx-auto py-16 text-center transition-colors duration-200 ${
-      isDarkMode ? 'text-gray-400' : 'text-gray-500'
+      'text-gray-500'
     }`}>Campaign not found.</div>;
   }
 
@@ -124,7 +122,7 @@ const CampaignDetail = () => {
     <div className="min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-200">
       <div className="max-w-3xl mx-auto px-4 py-10">
         <div className={`rounded-lg shadow border p-6 mb-8 transition-colors duration-200 ${
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          'bg-white border-gray-200'
         }`}>
           {campaign.media && campaign.media.length > 0 && campaign.media[0].type === 'image' ? (
             <img src={campaign.media[0].url} alt={campaign.title} className="rounded-lg mb-6 w-full h-64 object-cover" />
@@ -134,18 +132,18 @@ const CampaignDetail = () => {
             </div>
           )}
           <h1 className={`text-3xl font-bold mb-2 transition-colors duration-200 ${
-            isDarkMode ? 'text-white' : 'text-gray-900'
+            'text-gray-900'
           }`}>{campaign.title}</h1>
           <div className={`text-sm mb-2 transition-colors duration-200 ${
-            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            'text-gray-500'
           }`}>{campaign.category}</div>
           <div className={`mb-4 transition-colors duration-200 ${
-            isDarkMode ? 'text-gray-300' : 'text-gray-700'
+            'text-gray-700'
           }`}>{campaign.story}</div>
           <div className="mb-4">
             <div className="flex items-center mb-1">
               <div className={`w-full rounded-full h-3 mr-2 transition-colors duration-200 ${
-                isDarkMode ? 'bg-gray-700' : 'bg-gray-200'
+                'bg-gray-200'
               }`}>
                 <div
                   className="bg-primary-600 h-3 rounded-full"
@@ -153,14 +151,14 @@ const CampaignDetail = () => {
                 ></div>
               </div>
               <span className={`text-xs font-medium transition-colors duration-200 ${
-                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                'text-gray-700'
               }`}>{percent}%</span>
             </div>
             <div className={`flex justify-between text-sm transition-colors duration-200 ${
-              isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              'text-gray-600'
             }`}>
               <span><span className={`font-semibold transition-colors duration-200 ${
-                isDarkMode ? 'text-white' : 'text-primary-700'
+                'text-primary-700'
               }`}>₹{campaign.raised.toLocaleString('en-IN')}</span> raised</span>
               <span>Goal: ₹{campaign.goal.toLocaleString('en-IN')}</span>
               <span>Deadline: {new Date(campaign.deadline).toLocaleDateString('en-IN')}</span>
@@ -170,7 +168,7 @@ const CampaignDetail = () => {
           {/* Share Section */}
           <div className="mt-8">
             <h3 className={`text-lg font-semibold mb-2 transition-colors duration-200 ${
-              isDarkMode ? 'text-white' : 'text-gray-900'
+              'text-gray-900'
             }`}>Share this campaign</h3>
             <div className="flex gap-3 flex-wrap">
               <a
@@ -200,9 +198,7 @@ const CampaignDetail = () => {
               <button
                 onClick={handleCopy}
                 className={`px-3 py-2 rounded text-sm font-medium transition-colors duration-200 ${
-                  isDarkMode 
-                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
                 {copied ? 'Copied!' : 'Copy Link'}
@@ -211,26 +207,26 @@ const CampaignDetail = () => {
           </div>
         </div>
         <div className={`rounded-lg shadow border p-6 transition-colors duration-200 ${
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          'bg-white border-gray-200'
         }`}>
           <h2 className={`text-xl font-semibold mb-4 transition-colors duration-200 ${
-            isDarkMode ? 'text-white' : 'text-gray-900'
+            'text-gray-900'
           }`}>Contributors</h2>
           {campaign.contributors.length === 0 ? (
             <div className={`transition-colors duration-200 ${
-              isDarkMode ? 'text-gray-400' : 'text-gray-500'
+              'text-gray-500'
             }`}>No contributors yet.</div>
           ) : (
             <ul className={`divide-y transition-colors duration-200 ${
-              isDarkMode ? 'divide-gray-700' : 'divide-gray-100'
+              'divide-gray-100'
             }`}>
               {campaign.contributors.map((contrib, idx) => (
                 <li key={idx} className="py-2 flex justify-between items-center">
                   <span className={`font-medium transition-colors duration-200 ${
-                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                    'text-gray-800'
                   }`}>{contrib.name}</span>
                   <span className={`font-semibold transition-colors duration-200 ${
-                    isDarkMode ? 'text-white' : 'text-primary-700'
+                    'text-primary-700'
                   }`}>₹{contrib.amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</span>
                 </li>
               ))}
@@ -241,44 +237,40 @@ const CampaignDetail = () => {
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
             <div className={`rounded-lg shadow-lg p-8 w-full max-w-md relative transition-colors duration-200 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              'bg-white'
             }`}>
               <button className={`absolute top-2 right-2 transition-colors duration-200 ${
-                isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+                'text-gray-400 hover:text-gray-600'
               }`} onClick={() => setShowModal(false)}>&times;</button>
               <h3 className={`text-xl font-semibold mb-4 transition-colors duration-200 ${
-                isDarkMode ? 'text-white' : 'text-gray-900'
+                'text-gray-900'
               }`}>Contribute to {campaign.title}</h3>
               {modalStep === 1 && (
                 <form onSubmit={handleContribute} className="space-y-4">
                   <div>
                     <label className={`block text-sm font-medium mb-1 transition-colors duration-200 ${
-                      isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                      'text-gray-700'
                     }`}>Your Name</label>
                     <input
                       type="text"
                       value={contribName}
                       onChange={e => setContribName(e.target.value)}
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors duration-200 ${
-                        isDarkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                          : 'border-gray-300'
+                        'border-gray-300'
                       }`}
                       placeholder="e.g., Jane Doe"
                     />
                   </div>
                   <div>
                     <label className={`block text-sm font-medium mb-1 transition-colors duration-200 ${
-                      isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                      'text-gray-700'
                     }`}>Amount (INR)</label>
                     <input
                       type="number"
                       value={contribAmount}
                       onChange={e => setContribAmount(e.target.value)}
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors duration-200 ${
-                        isDarkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                          : 'border-gray-300'
+                        'border-gray-300'
                       }`}
                       placeholder="e.g., 500"
                     />
@@ -295,13 +287,13 @@ const CampaignDetail = () => {
               {modalStep === 2 && (
                 <div className="space-y-4">
                   <div className={`p-4 rounded-lg border transition-colors duration-200 ${
-                    isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    'bg-gray-50 border-gray-200'
                   }`}>
                     <h4 className={`font-medium mb-2 transition-colors duration-200 ${
-                      isDarkMode ? 'text-white' : 'text-gray-900'
+                      'text-gray-900'
                     }`}>Contribution Summary</h4>
                     <div className={`text-sm transition-colors duration-200 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                      'text-gray-600'
                     }`}>
                       <p>Name: {contribName}</p>
                       <p>Amount: ₹{contribAmount}</p>

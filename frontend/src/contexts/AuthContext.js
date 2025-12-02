@@ -1,15 +1,19 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
+import authService from '../services/authService';
+
+// Set default base URL
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const AuthContext = createContext();
 
 const initialState = {
   user: null,
-  token: localStorage.getItem('token'),
+  token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
   isAuthenticated: false,
   loading: true,
   // Add a mock role for frontend testing
-  mockRole: localStorage.getItem('mockRole') || 'owner', // can be 'admin', 'owner', 'backer', 'jobseeker', 'employer'
+  mockRole: typeof window !== 'undefined' ? (localStorage.getItem('mockRole') || 'owner') : 'owner', // can be 'admin', 'owner', 'backer', 'jobseeker', 'employer'
 };
 
 const authReducer = (state, action) => {
@@ -83,8 +87,8 @@ export const AuthProvider = ({ children }) => {
     if (state.token) {
       setAuthToken(state.token);
       try {
-        const res = await axios.get('/api/auth/me');
-        dispatch({ type: 'USER_LOADED', payload: res.data.user });
+        const user = await authService.getCurrentUser();
+        dispatch({ type: 'USER_LOADED', payload: user.user });
       } catch (err) {
         dispatch({ type: 'AUTH_ERROR' });
       }
@@ -96,8 +100,8 @@ export const AuthProvider = ({ children }) => {
   // Register user
   const register = async (formData) => {
     try {
-      const res = await axios.post('/api/auth/register', formData);
-      dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
+      const data = await authService.register(formData);
+      dispatch({ type: 'LOGIN_SUCCESS', payload: data });
       return { success: true };
     } catch (err) {
       const error = err.response?.data?.message || 'Registration failed';
@@ -108,8 +112,8 @@ export const AuthProvider = ({ children }) => {
   // Login user
   const login = async (formData) => {
     try {
-      const res = await axios.post('/api/auth/login', formData);
-      dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
+      const data = await authService.login(formData);
+      dispatch({ type: 'LOGIN_SUCCESS', payload: data });
       return { success: true };
     } catch (err) {
       const error = err.response?.data?.message || 'Login failed';
@@ -119,6 +123,7 @@ export const AuthProvider = ({ children }) => {
 
   // Logout user
   const logout = () => {
+    authService.logout();
     dispatch({ type: 'LOGOUT' });
     // Clear axios headers
     delete axios.defaults.headers.common['Authorization'];
@@ -130,8 +135,8 @@ export const AuthProvider = ({ children }) => {
   // Update user profile
   const updateProfile = async (formData) => {
     try {
-      const res = await axios.put('/api/users/profile', formData);
-      dispatch({ type: 'UPDATE_USER', payload: res.data.data });
+      const data = await authService.updateProfile(formData);
+      dispatch({ type: 'UPDATE_USER', payload: data.data });
       await loadUser(); // Refresh user object with latest info
       return { success: true };
     } catch (err) {
@@ -143,7 +148,7 @@ export const AuthProvider = ({ children }) => {
   // Change password
   const changePassword = async (formData) => {
     try {
-      await axios.put('/api/users/password', formData);
+      await authService.changePassword(formData);
       return { success: true };
     } catch (err) {
       const error = err.response?.data?.message || 'Password change failed';
