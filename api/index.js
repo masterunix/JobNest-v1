@@ -85,12 +85,13 @@ app.use('*', (req, res) => {
 // Export the Express API for Vercel
 module.exports = app;
 
-// Only start the server in development
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+// Start the server whenever not running on Vercel (Render/Local/etc.)
+// Render provides PORT; Vercel uses serverless and should not call listen.
+if (!process.env.VERCEL) {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔗 API URL: http://localhost:${PORT}`);
   });
-} 
+}
