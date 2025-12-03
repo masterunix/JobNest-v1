@@ -3,6 +3,26 @@ import { Link } from 'react-router-dom';
 import { Github, Twitter, Linkedin } from 'lucide-react';
 
 const Footer = () => {
+  const [isBackendActive, setIsBackendActive] = React.useState(false);
+  const backendUrl = "https://jobnest-v1-5xlk.onrender.com/";
+
+  React.useEffect(() => {
+    const checkBackendStatus = async () => {
+      try {
+        const response = await fetch(backendUrl);
+        if (response.ok) {
+          setIsBackendActive(true);
+        } else {
+          setIsBackendActive(false);
+        }
+      } catch (error) {
+        setIsBackendActive(false);
+      }
+    };
+
+    checkBackendStatus();
+  }, []);
+
   return (
     <footer className="bg-gray-900 dark:bg-gray-950 text-white transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -105,7 +125,7 @@ const Footer = () => {
             <p className="text-gray-400 dark:text-gray-500 text-sm">
               © {new Date().getFullYear()} JobNest. All rights reserved.
             </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
+            <div className="flex space-x-6 mt-4 md:mt-0 items-center">
               <Link to="/privacy" className="text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-300 text-sm transition-colors">
                 Privacy Policy
               </Link>
@@ -115,6 +135,14 @@ const Footer = () => {
               <Link to="/cookies" className="text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-300 text-sm transition-colors">
                 Cookie Policy
               </Link>
+              <a
+                href={backendUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`w-4 h-4 rounded-full ${isBackendActive ? 'bg-green-500' : 'bg-red-500'
+                  } transition-colors duration-300`}
+                title="Backend Status"
+              />
             </div>
           </div>
         </div>
