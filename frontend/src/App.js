@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import CopyrightBar from './components/layout/CopyrightBar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Jobs from './pages/Jobs';
@@ -93,7 +94,8 @@ function App() {
               </Routes>
             </main>
             <Footer />
-            <Toaster 
+            <CopyrightBar />
+            <Toaster
               position="top-right"
               toastOptions={{
                 duration: 4000,
