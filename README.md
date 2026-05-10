@@ -180,5 +180,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## © Copyright
 
 **Copyright by vatsal goyal 2025, under MIT licence.**
-
-Built with ❤️ by the JobNest Team.
