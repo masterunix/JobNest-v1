@@ -127,6 +127,13 @@ RAZORPAY_KEY_ID=your_razorpay_key_id
 RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 ```
 
+## 🔑 Default Credentials
+
+After running the seed script, you can use the following credentials to log in:
+
+- **Admin Account**: `admin@jobnest.com` / `admin123`
+- **Employer Account**: `employer@test.com` / `password123`
+
 ## 🎬 Running the Application
 
 ### Method 1: Concurrent (Recommended)
@@ -163,7 +170,8 @@ The application will be available at:
 
 ## � Screenshots
 
-*(Add screenshots of your application here)*
+### Admin Dashboard
+![JobNest Admin Dashboard](./screenshots/homepage.png)
 
 ## 📄 License
 

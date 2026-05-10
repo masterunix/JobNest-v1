@@ -4,11 +4,13 @@
   "description": "A full-stack job application platform",
   "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "cd api && nodemon index.js",
-    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+    "install-all": "npm install && cd api && npm install && cd ../frontend && npm install",
+    "server": "npm run dev --prefix api",
+    "client": "npm start --prefix frontend",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "start": "npm run server",
+    "build": "cd frontend && npm run build",
+    "preview": "cd frontend && npm run preview"
   },
   "keywords": [
     "job",
